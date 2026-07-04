@@ -108,11 +108,12 @@ class KuralAyarlari:
 
 @dataclass
 class YerlesimGirdisi:
-    """Çözücünün ürettiği yerleşimde tek bir ders atamasının gün ve başlangıç dilimini tutar."""
+    """Çözücünün ürettiği yerleşimde tek bir bloğun gün, başlangıç dilimi ve süresini tutar."""
 
     ders_atamasi_index: int
     gun: int
     baslangic_dilim: int
+    sure: int
 
 
 @dataclass
@@ -401,11 +402,44 @@ def kontrol_blok_sayisi_siniri(okul: Okul) -> list[str]:
     return hatalar
 
 
+def _bos_gun_icin_rezerve_edilecek_acik_dilim(okul: Okul, ogretmen: Ogretmen) -> int:
+    """dışOkul kapanışı olmayan günler arasından açık dilimi en az olan günün açık dilim sayısını döndürür.
+
+    B3'ün garanti ettiği boş gün bu güne "biner": o günün zaten kapalı
+    dilimleri (varsa) toplam kapanış sayısına bir kez dahil edildiğinden,
+    burada yalnızca AÇIK (henüz kapanışsız) dilimler ek olarak rezerve
+    edilir -- aksi halde aynı kapanış iki kez düşülür (Görev A.2 hatası).
+    """
+    gun_basi_kapanis: dict[int, int] = {}
+    dis_okul_gunleri: set[int] = set()
+    for kapanis in ogretmen.kapanislar:
+        gun_basi_kapanis[kapanis.gun] = gun_basi_kapanis.get(kapanis.gun, 0) + len(
+            kapanis.dilimler
+        )
+        if kapanis.neden == KapanisNedeni.DIS_OKUL:
+            dis_okul_gunleri.add(kapanis.gun)
+
+    uygun_gunler = [
+        g for g in range(1, okul.izgara.gun_sayisi + 1) if g not in dis_okul_gunleri
+    ]
+    if not uygun_gunler:
+        # Her gün dışOkul kapanışlı: garanti edilebilecek bir boş gün yok.
+        # Bu öğretmen için B3 yapısal olarak karşılanamaz; en kötü durumu
+        # varsayıp tam bir günü rezerve ederek kapasiteyi düşük tahmin ederiz.
+        return okul.izgara.dilim_sayisi
+
+    en_az_kapanisli_gunun_kapanisi = min(
+        gun_basi_kapanis.get(g, 0) for g in uygun_gunler
+    )
+    return okul.izgara.dilim_sayisi - en_az_kapanisli_gunun_kapanisi
+
+
 def _ogretmen_kapasitesi(okul: Okul, ogretmen: Ogretmen) -> int:
-    """Bir öğretmenin toplam dilim sayısından kapanışları ve garanti edilecek boş günü düşerek atanabilir kapasitesini hesaplar."""
+    """Bir öğretmenin toplam dilim sayısından kapanışları ve garanti edilecek boş günün açık dilimlerini düşerek atanabilir kapasitesini hesaplar."""
     toplam_dilim = okul.izgara.gun_sayisi * okul.izgara.dilim_sayisi
     kapanis_dilim_sayisi = sum(len(k.dilimler) for k in ogretmen.kapanislar)
-    return toplam_dilim - kapanis_dilim_sayisi - okul.izgara.dilim_sayisi
+    rezerve = _bos_gun_icin_rezerve_edilecek_acik_dilim(okul, ogretmen)
+    return toplam_dilim - kapanis_dilim_sayisi - rezerve
 
 
 def kontrol_ogretmen_kapasitesi(okul: Okul) -> list[str]:

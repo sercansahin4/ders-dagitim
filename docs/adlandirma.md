@@ -43,6 +43,7 @@ Sözcükler Türkçe, casing dilin kendisinindir.
 | Yerleşim (çıktı) | `Yerlesim` |
 | Kural ayarları | `KuralAyarlari` |
 | Karnıyarık/pencere | `karniyarik` / `pencere` |
+| Okul (kapsayıcı) | `Okul` (JSON kök nesnesi; ızgara, dersler, öğretmenler, şubeler, ders atamaları ve KuralAyarlari'nı bir arada taşır) |
 
 Kapanış nedeni enum: `DIS_OKUL | BOS_GUN | IDARI | KISISEL_TERCIH`
 
