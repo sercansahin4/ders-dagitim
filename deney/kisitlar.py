@@ -7,15 +7,48 @@ Bu dosyanın haritası docs/cevrim-tablosu.md'dir: §0 temel karar
 değişkenlerini, §1 B1-B8 sert kurallarını tanımlar; kod bu tabloyla
 bire bir izlenebilir olacak şekilde yazılmıştır (her kural = bir
 fonksiyon).
+
+İki modlu kurulum (cevrim-tablosu.md §4, kararlar.md Karar 13):
+  - HIZLI mod (tanilama_modu=False, varsayılan): kapanışlar basit bir
+    arama uzayı budamasıdır -- kapalı dilime denk gelen basla anahtarı
+    hiç YARATILMAZ. En ucuz kurulum ama budanan bir değişken unsat
+    core'da hiç görünemez: çözücü "bu kapanış olmasaydı olurdu" diye
+    bir şey söyleyemez çünkü kapanışın izini taşıyan bir kısıt yok.
+  - TANILAMA modu (tanilama_modu=True): kapanış dilimlerine denk gelen
+    basla anahtarları da yaratılır; kapanışın etkisi ("bu dilimde ders
+    olamaz") gerçek bir kısıt olarak yazılır ve bu kısıt bir varsayım
+    (assumption) anahtarına bağlanır. Çözümsüzlükte CP-SAT hangi
+    varsayımların BİRLİKTE tutulamayacağını söyleyebilir -- bu da
+    hangi kapanışın (ve hangi B3/B4/B6 kuralının) sorunun parçası
+    olduğunu ortaya çıkarır. Bu okulda beklenen ana çözümsüzlük
+    kaynağı müsaitlik olduğundan, tanılama modunda kapanışların
+    kısıt olarak var olması hayati önemde.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Optional
 
 from ortools.sat.python import cp_model
 
 from model import DersAtamasi, KapanisNedeni, Ogretmen, Okul
+
+
+@dataclass
+class VarsayimAnahtari:
+    """Tanılama modunda bir sert kural grubunu temsil eden varsayım (assumption) anahtarını tutar.
+
+    tur: "B3" | "B4" | "B6" | "KAPANIS". Diğer alanlar türe göre
+    doldurulur (öğretmen kuralları için ogretmen_adi, B4 için
+    atama_index, kapanış grubu için ogretmen_adi + neden).
+    """
+
+    tur: str
+    literal: cp_model.IntVar
+    ogretmen_adi: Optional[str] = None
+    atama_index: Optional[int] = None
+    neden: Optional[KapanisNedeni] = None
 
 
 @dataclass
@@ -26,6 +59,7 @@ class KisitModeli:
     okul: Okul
     gunler: list[int]
     dilimler: list[int]
+    tanilama_modu: bool = False
     # basla[a_idx, b_idx, g, s] -- yalnızca geçerli konumlar için anahtar var.
     basla: dict[tuple[int, int, int, int], cp_model.IntVar] = field(default_factory=dict)
     # dolu[a_idx, g, s]
@@ -38,6 +72,8 @@ class KisitModeli:
     gun_bos: dict[tuple[str, int], cp_model.IntVar] = field(default_factory=dict)
     # pencere[ogretmen_adi, g, s] -- segment sınırında sabit 0 (int) olabilir.
     pencere: dict[tuple[str, int, int], object] = field(default_factory=dict)
+    # Tanılama modunda oluşturulan tüm varsayım anahtarları (sırayla).
+    varsayimlar: list[VarsayimAnahtari] = field(default_factory=list)
 
 
 def _kapanis_dilimleri(ogretmen: Ogretmen) -> dict[tuple[int, int], KapanisNedeni]:
@@ -50,14 +86,28 @@ def _kapanis_dilimleri(ogretmen: Ogretmen) -> dict[tuple[int, int], KapanisNeden
 
 
 def b2_kapanislar(
-    okul: Okul, atama: DersAtamasi, uzunluk: int, gunler: list[int], dilimler: list[int]
+    okul: Okul,
+    atama: DersAtamasi,
+    uzunluk: int,
+    gunler: list[int],
+    dilimler: list[int],
+    kapanislari_budama_olarak_uygula: bool = True,
 ) -> list[tuple[int, int]]:
-    """Cevrim-tablosu §1 B2: bir bloğun, atamanın hiçbir öğretmeni için kapalı dilime denk gelmeyen (gün, başlangıç) konumlarını hesaplar (arama uzayı budaması).
+    """Cevrim-tablosu §1 B2: bir bloğun geçerli (gün, başlangıç) konumlarını hesaplar.
 
-    Aynı adımda ızgara sınırı (blok gün sonunu taşamaz) ve öğle arası
-    ayarı (Izgara.ogle_arasi_bloklari_boler=True ise blok öğle arasını
-    kesemez) da uygulanır -- B2'nin "basla 0'a sabitlenir" ifadesiyle
-    aynı etkiyi, değişkeni hiç yaratmayarak (daha verimli) sağlarlar.
+    Izgara sınırı (blok gün sonunu taşamaz) ve öğle arası ayarı
+    (Izgara.ogle_arasi_bloklari_boler=True ise blok öğle arasını
+    kesemez) HER ZAMAN uygulanır -- bunlar gevşetilebilir varsayımlar
+    değil, ızgaranın yapısıdır.
+
+    kapanislari_budama_olarak_uygula=True (HIZLI mod, varsayılan):
+    kapalı dilime denk gelen konumlar tamamen elenir (arama uzayı
+    budaması, B2'nin "basla 0'a sabitlenir" ifadesiyle aynı etkiyi
+    değişkeni hiç yaratmayarak sağlar).
+    kapanislari_budama_olarak_uygula=False (TANILAMA modu): kapanışlar
+    burada göz ardı edilir -- kapanışın etkisi, çağıran tarafından
+    (kur_temel_degiskenler) ayrı bir varsayıma bağlı kısıt olarak
+    eklenir; böylece kapanış unsat core'da görünebilir hale gelir.
     """
     kapanislar = [
         _kapanis_dilimleri(o) for o in okul.ogretmenler if o.ad in atama.ogretmenler
@@ -71,9 +121,10 @@ def b2_kapanislar(
                 sinir = okul.izgara.ogle_arasi_sonrasi_dilim
                 if s <= sinir < s + uzunluk - 1:
                     continue
-            kapsanan = range(s, s + uzunluk)
-            if any((g, d) in kapanis for d in kapsanan for kapanis in kapanislar):
-                continue
+            if kapanislari_budama_olarak_uygula:
+                kapsanan = range(s, s + uzunluk)
+                if any((g, d) in kapanis for d in kapsanan for kapanis in kapanislar):
+                    continue
             gecerli.append((g, s))
     return gecerli
 
@@ -84,6 +135,8 @@ def b1_cakismazlik(km: KisitModeli) -> None:
     calisiyor/sube_dolu bir BoolVar'a eşitlendiğinden (0/1 dışına
     çıkamaz), ilgili dolu toplamı zaten "en fazla 1" ile sınırlanmış
     olur -- bu eşitlik B1'in kendisidir, ayrı bir "<=1" kısıtı gerekmez.
+    B1 hiçbir modda varsayıma bağlanmaz: çakışmazlık gevşetilebilir bir
+    politika değil, geçerli bir programın tanımıdır.
     """
     for ogretmen in km.okul.ogretmenler:
         ilgili = [
@@ -110,19 +163,37 @@ def b1_cakismazlik(km: KisitModeli) -> None:
                 km.sube_dolu[(sube.ad, g, s)] = var
 
 
+def _yeni_varsayim(km: KisitModeli, isim: str, **kwargs) -> Optional[cp_model.IntVar]:
+    """Tanılama modundaysa yeni bir varsayım literali yaratıp kaydeder; hızlı modda None döner."""
+    if not km.tanilama_modu:
+        return None
+    literal = km.model.NewBoolVar(isim)
+    km.model.AddAssumption(literal)
+    km.varsayimlar.append(VarsayimAnahtari(literal=literal, **kwargs))
+    return literal
+
+
 def b3_bos_gun_garantisi(km: KisitModeli) -> None:
-    """Cevrim-tablosu §1 B3: dışOkul kapanışı olmayan günler üzerinden her öğretmene en az bir tam boş gün garanti eder."""
+    """Cevrim-tablosu §1 B3: dışOkul kapanışı olmayan günler üzerinden her öğretmene en az bir tam boş gün garanti eder (öğretmen başına bir varsayım anahtarı, tanılama modunda)."""
     for ogretmen in km.okul.ogretmenler:
         dis_okul_gunleri = {
             k.gun for k in ogretmen.kapanislar if k.neden == KapanisNedeni.DIS_OKUL
         }
         uygun_gunler = [g for g in km.gunler if g not in dis_okul_gunleri]
-        km.model.Add(sum(km.gun_bos[(ogretmen.ad, g)] for g in uygun_gunler) >= 1)
+        varsayim = _yeni_varsayim(
+            km, f"varsayim_b3_{ogretmen.ad}", tur="B3", ogretmen_adi=ogretmen.ad
+        )
+        kisit = km.model.Add(sum(km.gun_bos[(ogretmen.ad, g)] for g in uygun_gunler) >= 1)
+        if varsayim is not None:
+            kisit.OnlyEnforceIf(varsayim)
 
 
 def b4_ayri_gune_dagilim(km: KisitModeli) -> None:
-    """Cevrim-tablosu §1 B4: her ders ataması için aynı güne en fazla bir blok başlayabilir (her blok ayrı bir güne düşer)."""
+    """Cevrim-tablosu §1 B4: her ders ataması için aynı güne en fazla bir blok başlayabilir (atama başına bir varsayım anahtarı, tanılama modunda)."""
     for a_idx, atama in enumerate(km.okul.ders_atamalari):
+        varsayim = _yeni_varsayim(
+            km, f"varsayim_b4_a{a_idx}", tur="B4", atama_index=a_idx
+        )
         for g in km.gunler:
             anahtarlar = [
                 km.basla[(a_idx, b_idx, gg, s)]
@@ -130,7 +201,9 @@ def b4_ayri_gune_dagilim(km: KisitModeli) -> None:
                 if a_idx2 == a_idx and gg == g
             ]
             if anahtarlar:
-                km.model.Add(sum(anahtarlar) <= 1)
+                kisit = km.model.Add(sum(anahtarlar) <= 1)
+                if varsayim is not None:
+                    kisit.OnlyEnforceIf(varsayim)
 
 
 # B5 -- Rehberlik öğretmeni: çözücü kısıtı GEREKMEZ. Veri kurulumunda
@@ -141,9 +214,12 @@ def b4_ayri_gune_dagilim(km: KisitModeli) -> None:
 
 
 def b6_pencere_ust_siniri(km: KisitModeli) -> None:
-    """Cevrim-tablosu §1 B6: her öğretmen için her ardışık pencere_sert_esigi'lik dilim penceresinde en fazla (esik-1) pencere dilimine izin verir (kayan pencere)."""
+    """Cevrim-tablosu §1 B6: her öğretmen için her ardışık pencere_sert_esigi'lik dilim penceresinde en fazla (esik-1) pencere dilimine izin verir (öğretmen başına bir varsayım anahtarı, tanılama modunda)."""
     esik = km.okul.kural_ayarlari.pencere_sert_esigi
     for ogretmen in km.okul.ogretmenler:
+        varsayim = _yeni_varsayim(
+            km, f"varsayim_b6_{ogretmen.ad}", tur="B6", ogretmen_adi=ogretmen.ad
+        )
         for g in km.gunler:
             for s in km.dilimler:
                 if s + esik - 1 > km.okul.izgara.dilim_sayisi:
@@ -151,7 +227,9 @@ def b6_pencere_ust_siniri(km: KisitModeli) -> None:
                 pencere_toplami = sum(
                     km.pencere[(ogretmen.ad, g, s2)] for s2 in range(s, s + esik)
                 )
-                km.model.Add(pencere_toplami <= esik - 1)
+                kisit = km.model.Add(pencere_toplami <= esik - 1)
+                if varsayim is not None:
+                    kisit.OnlyEnforceIf(varsayim)
 
 
 # B7 -- Eşzamanlı ortak ders: ayrı bir kısıt GEREKMEZ. Birleştirilmiş
@@ -162,7 +240,7 @@ def b6_pencere_ust_siniri(km: KisitModeli) -> None:
 
 
 def b8_sabitleme(km: KisitModeli) -> None:
-    """Cevrim-tablosu §1 B8: sabitlenen ders atamalarının basla anahtarını 1'e kilitler."""
+    """Cevrim-tablosu §1 B8: sabitlenen ders atamalarının basla anahtarını 1'e kilitler (varsayıma bağlanmaz -- kullanıcı kararıdır, tartışmaya kapalıdır)."""
     for a_idx, atama in enumerate(km.okul.ders_atamalari):
         if not atama.sabit_dilimler:
             continue
@@ -209,24 +287,67 @@ def _pencere_segment_kur(km: KisitModeli, ogretmen: Ogretmen, gun: int, segment:
         km.pencere[(ogretmen.ad, gun, s)] = pencere_var
 
 
-def kur_temel_degiskenler(okul: Okul) -> KisitModeli:
-    """Cevrim-tablosu §0'daki basla/dolu/calisiyor/sube_dolu/gun_bos/pencere değişkenlerini kurar ve B1'i (BoolVar tanımıyla) örtük olarak uygular."""
+def _kapanis_varsayimlari_ekle(km: KisitModeli) -> None:
+    """TANILAMA modunda: her (öğretmen, kapanış nedeni) grubu için bir varsayım anahtarı kurar ve 'bu dilimlerde ders olamaz' kısıtını buna bağlar.
+
+    Taneciklik öğretmen×neden düzeyindedir (cevrim-tablosu.md §4):
+    örn. bir öğretmenin TÜM dışOkul kapanışları tek bir anahtar,
+    kişiselTercih kapanışları ayrı bir anahtardır -- unsat core bu
+    ikisini birbirinden ayırt edebilsin diye.
+    """
+    for ogretmen in km.okul.ogretmenler:
+        nedene_gore: dict[KapanisNedeni, list[tuple[int, int]]] = {}
+        for kapanis in ogretmen.kapanislar:
+            for dilim in kapanis.dilimler:
+                nedene_gore.setdefault(kapanis.neden, []).append((kapanis.gun, dilim))
+
+        for neden, gun_dilim_listesi in nedene_gore.items():
+            varsayim = _yeni_varsayim(
+                km,
+                f"varsayim_kapanis_{ogretmen.ad}_{neden.name}",
+                tur="KAPANIS",
+                ogretmen_adi=ogretmen.ad,
+                neden=neden,
+            )
+            for (g, s) in gun_dilim_listesi:
+                km.model.Add(km.calisiyor[(ogretmen.ad, g, s)] == 0).OnlyEnforceIf(varsayim)
+
+
+def kur_temel_degiskenler(okul: Okul, tanilama_modu: bool = False) -> KisitModeli:
+    """Cevrim-tablosu §0'daki basla/dolu/calisiyor/sube_dolu/gun_bos/pencere değişkenlerini kurar ve B1'i (BoolVar tanımıyla) örtük olarak uygular.
+
+    tanilama_modu=False (varsayılan, HIZLI): kapanışlar B2 aracılığıyla
+    budanır, hiçbir varsayım anahtarı yaratılmaz.
+    tanilama_modu=True: kapanışlar budanmaz; bunun yerine her öğretmen×
+    neden grubu için bir varsayım anahtarına bağlı "dilim boş kalsın"
+    kısıtı eklenir (bkz. _kapanis_varsayimlari_ekle).
+    """
     model = cp_model.CpModel()
     gunler = list(range(1, okul.izgara.gun_sayisi + 1))
     dilimler = list(range(1, okul.izgara.dilim_sayisi + 1))
-    km = KisitModeli(model=model, okul=okul, gunler=gunler, dilimler=dilimler)
+    km = KisitModeli(
+        model=model, okul=okul, gunler=gunler, dilimler=dilimler, tanilama_modu=tanilama_modu
+    )
 
-    # basla[a,b,g,s] -- B2 uygulanmış (yalnızca geçerli konumlar) + her
-    # blok tam bir kez başlar (ExactlyOne) + simetri kırma.
+    # basla[a,b,g,s] -- HIZLI modda B2 uygulanmış (yalnızca geçerli
+    # konumlar); TANILAMA modunda kapanışlar hariç tutulmaz. Her iki
+    # modda da: her blok tam bir kez başlar (ExactlyOne) + simetri kırma.
     for a_idx, atama in enumerate(okul.ders_atamalari):
         blok_gecerlileri: list[list[tuple[int, int]]] = []
         for b_idx, uzunluk in enumerate(atama.blok_deseni):
-            gecerli = b2_kapanislar(okul, atama, uzunluk, gunler, dilimler)
+            gecerli = b2_kapanislar(
+                okul,
+                atama,
+                uzunluk,
+                gunler,
+                dilimler,
+                kapanislari_budama_olarak_uygula=not tanilama_modu,
+            )
             if not gecerli:
                 raise ValueError(
                     f"{atama.ders} ({', '.join(atama.subeler)}): {uzunluk} saatlik "
                     f"blok için hiçbir uygun (gün, başlangıç) konumu yok -- "
-                    f"öğretmen kapanışları veya ızgara sınırı tüm konumları kapatıyor."
+                    f"ızgara sınırı ya da öğle arası kuralı tüm konumları kapatıyor."
                 )
             blok_gecerlileri.append(gecerli)
             for (g, s) in gecerli:
@@ -271,6 +392,11 @@ def kur_temel_degiskenler(okul: Okul) -> KisitModeli:
     # calisiyor[t,g,s] / sube_dolu[c,g,s] -- B1 çakışmazlığıyla birlikte.
     b1_cakismazlik(km)
 
+    # TANILAMA modunda: kapanışların etkisi burada, varsayım anahtarlı
+    # kısıt olarak eklenir (HIZLI modda zaten B2 ile budanmıştı).
+    if tanilama_modu:
+        _kapanis_varsayimlari_ekle(km)
+
     # gun_bos[t,g] -- açıksa o gün Σ calisiyor = 0. Tek yön (=>) B3 için
     # yeterli; ters yön de eklenir ki gun_bos ileride (C1) güvenle
     # "gün gerçekten boş mu" anlamında okunabilsin.
@@ -284,6 +410,9 @@ def kur_temel_degiskenler(okul: Okul) -> KisitModeli:
 
     # pencere[t,g,s] -- kapanış-bölünmesiz segmentler içinde kurulur;
     # "pencereyi bölen" kapanış (Karar 12) segmenti ikiye ayırır.
+    # (Not: TANILAMA modunda kapanış dilimlerinde de calisiyor=0
+    # varsayımla sağlandığından, segment hesaplaması her iki modda da
+    # aynı veri -- ogretmen.kapanislar -- üzerinden yapılabilir.)
     for ogretmen in okul.ogretmenler:
         kapanislar = _kapanis_dilimleri(ogretmen)
         bolmeyen_nedenler = okul.kural_ayarlari.pencereyi_bolmeyen_nedenler

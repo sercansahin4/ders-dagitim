@@ -1,0 +1,852 @@
+{
+  "izgara": {
+    "gun_sayisi": 5,
+    "dilim_sayisi": 8,
+    "ogle_arasi_sonrasi_dilim": 5,
+    "ogle_arasi_bloklari_boler": false
+  },
+  "dersler": [
+    {
+      "ad": "Matematik",
+      "kategori": "SAYISAL"
+    },
+    {
+      "ad": "Fizik",
+      "kategori": "SAYISAL"
+    },
+    {
+      "ad": "Kimya",
+      "kategori": "SAYISAL"
+    },
+    {
+      "ad": "Biyoloji",
+      "kategori": "SAYISAL"
+    },
+    {
+      "ad": "Edebiyat",
+      "kategori": "SOZEL"
+    },
+    {
+      "ad": "Tarih",
+      "kategori": "SOZEL"
+    },
+    {
+      "ad": "Cografya",
+      "kategori": "SOZEL"
+    },
+    {
+      "ad": "Felsefe",
+      "kategori": "SOZEL"
+    },
+    {
+      "ad": "Ingilizce",
+      "kategori": "DIL"
+    },
+    {
+      "ad": "Almanca",
+      "kategori": "DIL"
+    },
+    {
+      "ad": "Beden Egitimi",
+      "kategori": "SANAT_SPOR"
+    },
+    {
+      "ad": "Muzik",
+      "kategori": "SANAT_SPOR"
+    },
+    {
+      "ad": "Gorsel Sanatlar",
+      "kategori": "SANAT_SPOR"
+    },
+    {
+      "ad": "Rehberlik",
+      "kategori": "REHBERLIK_DIGER"
+    }
+  ],
+  "ogretmenler": [
+    {
+      "ad": "Aylin Kaptan",
+      "verebilecegi_dersler": [
+        "Matematik",
+        "Rehberlik"
+      ],
+      "bos_gun_tercihi": 5,
+      "kapanislar": []
+    },
+    {
+      "ad": "Burak Deniz",
+      "verebilecegi_dersler": [
+        "Fizik",
+        "Kimya"
+      ],
+      "bos_gun_tercihi": 1,
+      "kapanislar": []
+    },
+    {
+      "ad": "Ceren Yildiz",
+      "verebilecegi_dersler": [
+        "Biyoloji"
+      ],
+      "bos_gun_tercihi": 3,
+      "kapanislar": []
+    },
+    {
+      "ad": "Deniz Aydin",
+      "verebilecegi_dersler": [
+        "Edebiyat",
+        "Rehberlik"
+      ],
+      "bos_gun_tercihi": 2,
+      "kapanislar": []
+    },
+    {
+      "ad": "Emre Kartal",
+      "verebilecegi_dersler": [
+        "Tarih",
+        "Cografya"
+      ],
+      "bos_gun_tercihi": 4,
+      "kapanislar": []
+    },
+    {
+      "ad": "Feride Ozturk",
+      "verebilecegi_dersler": [
+        "Felsefe",
+        "Rehberlik"
+      ],
+      "bos_gun_tercihi": 5,
+      "kapanislar": []
+    },
+    {
+      "ad": "Gokhan Aslan",
+      "verebilecegi_dersler": [
+        "Ingilizce"
+      ],
+      "bos_gun_tercihi": 1,
+      "kapanislar": [
+        {
+          "gun": 1,
+          "dilimler": [
+            1,
+            3,
+            5,
+            7
+          ],
+          "neden": "KISISEL_TERCIH"
+        },
+        {
+          "gun": 2,
+          "dilimler": [
+            1,
+            3,
+            5,
+            7
+          ],
+          "neden": "KISISEL_TERCIH"
+        },
+        {
+          "gun": 3,
+          "dilimler": [
+            1,
+            3,
+            5,
+            7
+          ],
+          "neden": "KISISEL_TERCIH"
+        },
+        {
+          "gun": 4,
+          "dilimler": [
+            1,
+            3,
+            5,
+            7
+          ],
+          "neden": "KISISEL_TERCIH"
+        }
+      ]
+    },
+    {
+      "ad": "Ilker Bulut",
+      "verebilecegi_dersler": [
+        "Almanca"
+      ],
+      "bos_gun_tercihi": 3,
+      "kapanislar": [
+        {
+          "gun": 2,
+          "dilimler": [
+            6,
+            7,
+            8
+          ],
+          "neden": "DIS_OKUL"
+        }
+      ]
+    },
+    {
+      "ad": "Hale Uzun",
+      "verebilecegi_dersler": [
+        "Beden Egitimi",
+        "Muzik",
+        "Gorsel Sanatlar"
+      ],
+      "bos_gun_tercihi": 1,
+      "kapanislar": [
+        {
+          "gun": 4,
+          "dilimler": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "neden": "DIS_OKUL"
+        }
+      ]
+    }
+  ],
+  "subeler": [
+    {
+      "ad": "9-A",
+      "sinif_rehber_ogretmeni": "Aylin Kaptan"
+    },
+    {
+      "ad": "9-B",
+      "sinif_rehber_ogretmeni": "Deniz Aydin"
+    },
+    {
+      "ad": "10-A",
+      "sinif_rehber_ogretmeni": "Feride Ozturk"
+    }
+  ],
+  "ders_atamalari": [
+    {
+      "ders": "Matematik",
+      "haftalik_saat": 4,
+      "blok_deseni": [
+        2,
+        2
+      ],
+      "subeler": [
+        "9-A"
+      ],
+      "ogretmenler": [
+        "Aylin Kaptan"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Fizik",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9-A"
+      ],
+      "ogretmenler": [
+        "Burak Deniz"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Kimya",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9-A"
+      ],
+      "ogretmenler": [
+        "Burak Deniz"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Biyoloji",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9-A"
+      ],
+      "ogretmenler": [
+        "Ceren Yildiz"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Edebiyat",
+      "haftalik_saat": 5,
+      "blok_deseni": [
+        2,
+        2,
+        1
+      ],
+      "subeler": [
+        "9-A"
+      ],
+      "ogretmenler": [
+        "Deniz Aydin"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Tarih",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9-A"
+      ],
+      "ogretmenler": [
+        "Emre Kartal"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Cografya",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9-A"
+      ],
+      "ogretmenler": [
+        "Emre Kartal"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Felsefe",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9-A"
+      ],
+      "ogretmenler": [
+        "Feride Ozturk"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Ingilizce",
+      "haftalik_saat": 4,
+      "blok_deseni": [
+        2,
+        2
+      ],
+      "subeler": [
+        "9-A"
+      ],
+      "ogretmenler": [
+        "Gokhan Aslan"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Beden Egitimi",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9-A"
+      ],
+      "ogretmenler": [
+        "Hale Uzun"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Muzik",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "9-A"
+      ],
+      "ogretmenler": [
+        "Hale Uzun"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Gorsel Sanatlar",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "9-A"
+      ],
+      "ogretmenler": [
+        "Hale Uzun"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Rehberlik",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "9-A"
+      ],
+      "ogretmenler": [
+        "Aylin Kaptan"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Matematik",
+      "haftalik_saat": 4,
+      "blok_deseni": [
+        2,
+        2
+      ],
+      "subeler": [
+        "9-B"
+      ],
+      "ogretmenler": [
+        "Aylin Kaptan"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Fizik",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9-B"
+      ],
+      "ogretmenler": [
+        "Burak Deniz"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Kimya",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9-B"
+      ],
+      "ogretmenler": [
+        "Burak Deniz"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Biyoloji",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9-B"
+      ],
+      "ogretmenler": [
+        "Ceren Yildiz"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Edebiyat",
+      "haftalik_saat": 5,
+      "blok_deseni": [
+        2,
+        2,
+        1
+      ],
+      "subeler": [
+        "9-B"
+      ],
+      "ogretmenler": [
+        "Deniz Aydin"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Tarih",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9-B"
+      ],
+      "ogretmenler": [
+        "Emre Kartal"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Cografya",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9-B"
+      ],
+      "ogretmenler": [
+        "Emre Kartal"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Felsefe",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9-B"
+      ],
+      "ogretmenler": [
+        "Feride Ozturk"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Ingilizce",
+      "haftalik_saat": 4,
+      "blok_deseni": [
+        2,
+        2
+      ],
+      "subeler": [
+        "9-B"
+      ],
+      "ogretmenler": [
+        "Gokhan Aslan"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Beden Egitimi",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9-B"
+      ],
+      "ogretmenler": [
+        "Hale Uzun"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Muzik",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "9-B"
+      ],
+      "ogretmenler": [
+        "Hale Uzun"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Gorsel Sanatlar",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "9-B"
+      ],
+      "ogretmenler": [
+        "Hale Uzun"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Rehberlik",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "9-B"
+      ],
+      "ogretmenler": [
+        "Deniz Aydin"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Matematik",
+      "haftalik_saat": 5,
+      "blok_deseni": [
+        2,
+        2,
+        1
+      ],
+      "subeler": [
+        "10-A"
+      ],
+      "ogretmenler": [
+        "Aylin Kaptan"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Fizik",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10-A"
+      ],
+      "ogretmenler": [
+        "Burak Deniz"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Kimya",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10-A"
+      ],
+      "ogretmenler": [
+        "Burak Deniz"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Biyoloji",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10-A"
+      ],
+      "ogretmenler": [
+        "Ceren Yildiz"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Edebiyat",
+      "haftalik_saat": 4,
+      "blok_deseni": [
+        2,
+        2
+      ],
+      "subeler": [
+        "10-A"
+      ],
+      "ogretmenler": [
+        "Deniz Aydin"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Tarih",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10-A"
+      ],
+      "ogretmenler": [
+        "Emre Kartal"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Cografya",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10-A"
+      ],
+      "ogretmenler": [
+        "Emre Kartal"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Felsefe",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10-A"
+      ],
+      "ogretmenler": [
+        "Feride Ozturk"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Almanca",
+      "haftalik_saat": 3,
+      "blok_deseni": [
+        2,
+        1
+      ],
+      "subeler": [
+        "10-A"
+      ],
+      "ogretmenler": [
+        "Ilker Bulut"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Beden Egitimi",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10-A"
+      ],
+      "ogretmenler": [
+        "Hale Uzun"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Muzik",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "10-A"
+      ],
+      "ogretmenler": [
+        "Hale Uzun"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Gorsel Sanatlar",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "10-A"
+      ],
+      "ogretmenler": [
+        "Hale Uzun"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Rehberlik",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "10-A"
+      ],
+      "ogretmenler": [
+        "Feride Ozturk"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    }
+  ],
+  "kural_ayarlari": {
+    "ogretmen_sube_gunluk_toplam": 3,
+    "ardisiklik_siniri": 2,
+    "pencere_sert_esigi": 4,
+    "pencereyi_bolmeyen_nedenler": [],
+    "sayisal_dilim_cezasi": [
+      0,
+      0,
+      0,
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "sanat_spor_dilim_cezasi": [
+      4,
+      3,
+      2,
+      1,
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

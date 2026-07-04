@@ -11,6 +11,7 @@ sonraki paketinde (C kuralları) eklenecek; bkz. docs/cevrim-tablosu.md §3.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Optional
 
 from ortools.sat.python import cp_model
 
@@ -25,8 +26,13 @@ def _gun_adi(gun: int) -> str:
     return GUN_ADLARI[gun - 1] if 1 <= gun <= len(GUN_ADLARI) else f"Gün {gun}"
 
 
-def coz(okul: Okul) -> tuple[cp_model.CpSolver, KisitModeli, Yerlesim | None]:
-    """Modeli kurar, sert kuralları (B1-B8) ekler ve amaç fonksiyonsuz fizibilite çözümünü çalıştırır."""
+def coz(okul: Okul) -> tuple[cp_model.CpSolver, KisitModeli, Optional[Yerlesim], int]:
+    """Modeli HIZLI modda kurar, sert kuralları (B1-B8) ekler ve amaç fonksiyonsuz fizibilite çözümünü çalıştırır.
+
+    Dönüş: (çözücü, kısıt modeli, Yerlesim ya da None, çözüm durumu).
+    Durum ayrıca döndürülür ki çağıran INFEASIBLE'ı (tanılama modunu
+    tetiklemeli) UNKNOWN/zaman aşımından (tanılama anlamsız) ayırt edebilsin.
+    """
     km = kur_temel_degiskenler(okul)
     sert_kurallari_uygula(km)
 
@@ -35,7 +41,7 @@ def coz(okul: Okul) -> tuple[cp_model.CpSolver, KisitModeli, Yerlesim | None]:
     durum = cozucu.Solve(km.model)
 
     if durum not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
-        return cozucu, km, None
+        return cozucu, km, None, durum
 
     yerlesim = Yerlesim()
     for (a_idx, b_idx, g, s), degisken in km.basla.items():
@@ -46,7 +52,7 @@ def coz(okul: Okul) -> tuple[cp_model.CpSolver, KisitModeli, Yerlesim | None]:
                     ders_atamasi_index=a_idx, gun=g, baslangic_dilim=s, sure=uzunluk
                 )
             )
-    return cozucu, km, yerlesim
+    return cozucu, km, yerlesim, durum
 
 
 def sube_carsaf_metni(okul: Okul, yerlesim: Yerlesim) -> str:
@@ -188,10 +194,14 @@ if __name__ == "__main__":
     ornek_yolu = Path(__file__).parent / "veri" / "ornek_okul.json"
     okul = okul_yukle(ornek_yolu)
 
-    cozucu, km, yerlesim = coz(okul)
+    cozucu, km, yerlesim, durum = coz(okul)
 
-    if yerlesim is None:
-        print("Çözüm bulunamadı (fizibilite sağlanamadı).")
+    if yerlesim is None and durum == cp_model.INFEASIBLE:
+        from tanilama import tanila
+
+        print(tanila(okul))
+    elif yerlesim is None:
+        print(f"Çözüm bulunamadı (durum: {cozucu.StatusName(durum)}).")
     else:
         print(f"Çözüm bulundu: {len(yerlesim.girdiler)} blok yerleşti.\n")
         print(sube_carsaf_metni(okul, yerlesim))

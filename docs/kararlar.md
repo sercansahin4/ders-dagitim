@@ -115,3 +115,12 @@ ve kişiye göre değişiyor (idari = dolu mesai, bekleme değil) — sabit
 kural değil ayar gerektirir. Kör nokta telafisi: kalite karnesine
 "kapanış bitişiğindeki bekleme dilimleri" bilgi satırı eklenir
 (kısıt değil, rapor). Ayrıntı: cevrim-tablosu.md §0 ve §5.
+
+## 13. İki modlu model kurulumu: hızlı / tanılama (4 Tem 2026)
+
+Hızlı modda kapanışlar değişken budamasıdır (en ucuz). Budanan
+değişken unsat core'da görünemeyeceğinden tanılama modunda
+kapanışlar varsayım anahtarlı kısıt olarak modellenir. Akış:
+hızlı çöz → UNSAT ise tanılama modunda yeniden kur → core çıkar.
+Maliyet: çözümsüz durumda ikinci model kurulumu (bu ölçekte
+önemsiz). Ayrıntı: cevrim-tablosu.md §4.
