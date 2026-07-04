@@ -11,23 +11,45 @@ CP-SAT'ın sufficient_assumptions_for_infeasibility listesi buradaki
 şablonlarla Türkçe rapora çevrilir. Hedef okuyucu: teknik geçmişi
 olmayan bir okul müdür yardımcısı -- "unsat core" gibi jargon rapor
 metninde hiç geçmez.
+
+Gevşetme önerisi motoru (kararlar.md Karar 14, kisit-envanteri.md §5):
+öneriler unsat core'un GİRDİLERİNDEN değil, core'da adı geçen
+öğretmen/derslerin BAĞLAMINDAN üretilir; her aday okulun hipotetik bir
+kopyasına uygulanıp HIZLI modda yeniden çözülür -- rapora yalnız
+çözüm açan adaylar girer.
 """
 
 from __future__ import annotations
 
+import time
+from copy import deepcopy
+from dataclasses import dataclass
+
 from ortools.sat.python import cp_model
 
-from kisitlar import VarsayimAnahtari, kur_temel_degiskenler, sert_kurallari_uygula
-from model import KapanisNedeni, Okul
+from kisitlar import VarsayimAnahtari, b2_kapanislar, kur_temel_degiskenler, sert_kurallari_uygula
+from model import DersKategorisi, KapanisNedeni, Okul, _ogretmen_kapasitesi, a_katmani_dogrulama
 
 _GUN_ADLARI_KUCUK = ["pazartesi", "salı", "çarşamba", "perşembe", "cuma"]
 
-_NEDEN_ADLARI = {
-    KapanisNedeni.DIS_OKUL: "dışOkul",
-    KapanisNedeni.BOS_GUN: "boşGün",
-    KapanisNedeni.IDARI: "idari",
-    KapanisNedeni.KISISEL_TERCIH: "kişiselTercih",
+# Görev C.2: enum adları ("dışOkul", "kişiselTercih"...) kullanıcı
+# metnine hiç sızmaz; bunlar yerine okunaklı Türkçe karşılıkları kullanılır.
+_NEDEN_KULLANICI_METNI = {
+    KapanisNedeni.DIS_OKUL: "dış okul görevi (başka okuldaki dersleri)",
+    KapanisNedeni.BOS_GUN: "planlı boş gün düzenlemesi",
+    KapanisNedeni.IDARI: "idari görev",
+    KapanisNedeni.KISISEL_TERCIH: "kişisel tercih günü/saatleri",
 }
+
+# Bir atama başına en fazla kaç aday üretilsin -- tüm basamakların
+# 12'lik toplam denemeye sığabilmesi için (Görev B). Atama başına
+# sınırlamak (tüm listeyi sonda kesmek yerine) core bağlamındaki HER
+# atamanın en az bir şansı olmasını garanti eder -- aksi halde context
+# içindeki ilk atama tüm bütçeyi tüketip diğerleri hiç denenmeyebilir.
+_MAKS_ADAY_ATAMA_BASINA_DESEN = 2
+_MAKS_ADAY_ATAMA_BASINA_YUK_DEVRI = 2
+_MAKS_TOPLAM_DENEME = 12
+_MAKS_EK_DENEME_IDARI = 3
 
 
 _KALIN_DUZ = set("aı")
@@ -102,20 +124,35 @@ def tanilama_modunda_coz(
     return cozucu, km.model, cekirdek
 
 
+# --- Ana teşhis cümleleri (kural kodları burada geçmez; bkz. _teknik_referans) --
+
+
+def _b4_uygun_gunler(okul: Okul, atama_index: int) -> list[int]:
+    """Bir atamanın en uzun bloğu için, mevcut kapanışlara göre en az bir geçerli başlangıcı olan günleri döndürür."""
+    atama = okul.ders_atamalari[atama_index]
+    en_uzun = max(atama.blok_deseni)
+    gunler = list(range(1, okul.izgara.gun_sayisi + 1))
+    dilimler = list(range(1, okul.izgara.dilim_sayisi + 1))
+    gecerli = b2_kapanislar(
+        okul, atama, en_uzun, gunler, dilimler, kapanislari_budama_olarak_uygula=True
+    )
+    return sorted({g for (g, _s) in gecerli})
+
+
 def _b3_cumlesi(okul: Okul, ogretmen_adi: str, kapanis_nedenleri: list[KapanisNedeni]) -> str:
     """B3 (boş gün garantisi) varsayımını, varsa eşlik eden kapanış nedenleriyle birlikte Türkçe cümleye çevirir."""
     if not kapanis_nedenleri:
         return (
             f"{_iyelik_eki(ogretmen_adi)} haftada en az bir tam boş günü garanti "
-            f"edilemiyor (B3): mevcut ders yüküyle hiçbir gün tamamen boşaltılamıyor."
+            f"edilemiyor: mevcut ders yüküyle hiçbir gün tamamen boşaltılamıyor."
         )
     parcalar = [
         f"{_gunleri_metne_cevir(_kapanis_gunlerini_bul(okul, ogretmen_adi, neden))} "
-        f"{_NEDEN_ADLARI[neden]} kapanışları"
+        f"günlerindeki {_NEDEN_KULLANICI_METNI[neden]}"
         for neden in kapanis_nedenleri
     ]
     return (
-        f"{_iyelik_eki(ogretmen_adi)} boş gün garantisi (B3), "
+        f"{_iyelik_eki(ogretmen_adi)} boş gün garantisi, "
         + " ve ".join(parcalar)
         + " ile birlikte sağlanamıyor."
     )
@@ -126,28 +163,34 @@ def _b6_cumlesi(okul: Okul, ogretmen_adi: str, kapanis_nedenleri: list[KapanisNe
     if not kapanis_nedenleri:
         return (
             f"{ogretmen_adi} için bir günde 4 saatten uzun boş bekleme oluşmaması "
-            f"kuralı (B6) sağlanamıyor: mevcut ders dağılımıyla bazı günlerde art "
-            f"arda çok uzun boşluk çıkıyor."
+            f"kuralı sağlanamıyor: mevcut ders dağılımıyla bazı günlerde art arda "
+            f"çok uzun boşluk çıkıyor."
         )
     parcalar = [
         f"{_gunleri_metne_cevir(_kapanis_gunlerini_bul(okul, ogretmen_adi, neden))} "
-        f"{_NEDEN_ADLARI[neden]} kapanışları"
+        f"günlerindeki {_NEDEN_KULLANICI_METNI[neden]}"
         for neden in kapanis_nedenleri
     ]
     return (
-        f"{ogretmen_adi} için uzun bekleme yasağı (B6), "
+        f"{ogretmen_adi} için uzun bekleme yasağı, "
         + " ve ".join(parcalar)
         + " ile birlikte sağlanamıyor."
     )
 
 
 def _b4_cumlesi(okul: Okul, atama_index: int) -> str:
-    """B4 (her blok ayrı güne) varsayımını Türkçe cümleye çevirir."""
+    """B4 (her blok ayrı güne) varsayımını, somut gün sayılarıyla Türkçe cümleye çevirir."""
     atama = okul.ders_atamalari[atama_index]
+    gerekli = len(atama.blok_deseni)
+    uygun_gunler = _b4_uygun_gunler(okul, atama_index)
+    if uygun_gunler:
+        gun_ekI = f" ({_gunleri_metne_cevir(uygun_gunler)})"
+    else:
+        gun_ekI = ""
     return (
-        f"{atama.ders} dersinin ({', '.join(atama.subeler)}) {len(atama.blok_deseni)} "
-        f"bloğu ayrı günlere dağıtılamıyor (B4): bu dersi verecek öğretmen için "
-        f"yeterli sayıda uygun gün kalmıyor."
+        f"{atama.ders} dersinin ({', '.join(atama.subeler)}) bloklarının her biri "
+        f"ayrı bir güne düşmeli: {gerekli} ayrı gün gerekiyor; yalnız "
+        f"{len(uygun_gunler)} uygun gün var{gun_ekI}."
     )
 
 
@@ -183,56 +226,371 @@ def cekirdek_cumleleri(okul: Okul, cekirdek: list[VarsayimAnahtari]) -> list[str
             continue
         gunler = _gunleri_metne_cevir(_kapanis_gunlerini_bul(okul, ogretmen_adi, neden))
         cumleler.append(
-            f"{_iyelik_eki(ogretmen_adi)} {gunler} günlerindeki {_NEDEN_ADLARI[neden]} "
-            f"kapanışları, bu programı imkânsız kılan nedenlerden biri."
+            f"{_iyelik_eki(ogretmen_adi)} {gunler} günlerindeki "
+            f"{_NEDEN_KULLANICI_METNI[neden]}, bu programı imkânsız kılan "
+            f"nedenlerden biri."
         )
 
     return cumleler
 
 
-def gevsetme_onerileri(okul: Okul, cekirdek: list[VarsayimAnahtari]) -> list[str]:
-    """Kisit-envanteri.md §5 hiyerarşisine göre gevşetme önerilerini sıralar: (1) desen, (2) tercih/sabitleme, (3) en son ve uyarılı müsaitlik."""
+def _teknik_referans(okul: Okul, cekirdek: list[VarsayimAnahtari]) -> str:
+    """Görev C.1: kural kodlarını (B3/B4/B6) ana cümlelerden çıkarıp tek bir referans satırında toplar."""
+    parcalar = []
+    for va in cekirdek:
+        if va.tur == "B3":
+            parcalar.append(f"B3 ({va.ogretmen_adi})")
+        elif va.tur == "B6":
+            parcalar.append(f"B6 ({va.ogretmen_adi})")
+        elif va.tur == "B4":
+            atama = okul.ders_atamalari[va.atama_index]
+            parcalar.append(f"B4 ({atama.ders}, {', '.join(atama.subeler)})")
+    return "Teknik referans: " + "; ".join(parcalar) if parcalar else ""
+
+
+def _neden_onerilmiyor_bolumu(cekirdek: list[VarsayimAnahtari]) -> list[str]:
+    """dışOkul ve boşGün nedenli kapanışların hiç önerilmeme gerekçesini açıklar."""
+    kapanis_gruplari = sorted(
+        {(va.ogretmen_adi, va.neden) for va in cekirdek if va.tur == "KAPANIS"}
+    )
+    satirlar: list[str] = []
+    for ogretmen_adi, neden in kapanis_gruplari:
+        if neden == KapanisNedeni.DIS_OKUL:
+            satirlar.append(
+                f"{ogretmen_adi} öğretmeninin dış okul görevi hiç öneri listesine "
+                f"alınmadı: bu, başka bir okula karşı verilmiş bir taahhüttür."
+            )
+        elif neden == KapanisNedeni.BOS_GUN:
+            satirlar.append(
+                f"{ogretmen_adi} öğretmeninin planlı boş günü hiç öneri listesine "
+                f"alınmadı: bu günün korunması zaten amaçlanan sonuçtur."
+            )
+    return satirlar
+
+
+# --- Gevşetme önerisi motoru (Karar 14): bağlam-tabanlı aday üretimi + doğrulama ---
+
+
+@dataclass
+class OneriAdayi:
+    """Bir gevşetme önerisi adayını -- açıklaması ve hipotetik olarak değiştirilmiş okul kopyasıyla -- tutar."""
+
+    basamak: int
+    aciklama: str
+    okul: Okul
+
+
+def _desen_adaylari(okul: Okul, atama_indeksleri: list[int]) -> list[OneriAdayi]:
+    """Basamak 1: core bağlamındaki atamalar için blok birleştirme ve bölme adayları üretir (örn. {2}->{1,1}).
+
+    Atama başına en fazla _MAKS_ADAY_ATAMA_BASINA_DESEN aday üretilir
+    (tüm listeyi sonda kesmek yerine): aksi halde context'teki ilk
+    atama tüm bütçeyi tüketip diğer atamalar hiç denenmeden kalabilir.
+    """
+    adaylar: list[OneriAdayi] = []
+    for a_idx in atama_indeksleri:
+        atama = okul.ders_atamalari[a_idx]
+        desen = atama.blok_deseni
+        uretilenler: set[tuple[int, ...]] = {tuple(sorted(desen, reverse=True))}
+        bu_atamanin_adaylari: list[OneriAdayi] = []
+
+        # Birleştirme: iki bloğu tek bloğa indirger (blok sayısı azalır,
+        # bir gün ihtiyacı düşer -- B4/B3 baskısını doğrudan azaltır).
+        for i in range(len(desen)):
+            for j in range(i + 1, len(desen)):
+                if len(bu_atamanin_adaylari) >= _MAKS_ADAY_ATAMA_BASINA_DESEN:
+                    break
+                yeni_desen = [v for k, v in enumerate(desen) if k not in (i, j)]
+                yeni_desen.append(desen[i] + desen[j])
+                anahtar = tuple(sorted(yeni_desen, reverse=True))
+                if anahtar in uretilenler:
+                    continue
+                uretilenler.add(anahtar)
+                yeni_okul = deepcopy(okul)
+                yeni_okul.ders_atamalari[a_idx].blok_deseni = sorted(
+                    yeni_desen, reverse=True
+                )
+                bu_atamanin_adaylari.append(
+                    OneriAdayi(
+                        basamak=1,
+                        aciklama=(
+                            f"{atama.ders} dersinin ({', '.join(atama.subeler)}) blok "
+                            f"desenini {desen} yerine {sorted(yeni_desen, reverse=True)} "
+                            f"yapmayı (iki bloğu birleştirmeyi) deneyin"
+                        ),
+                        okul=yeni_okul,
+                    )
+                )
+
+        # Bölme: bir bloğu ikiye ayırır (örn. {2}->{1,1}); parçalar daha
+        # az kısıtlı (fragmanlı) günlere de sığabilir.
+        for i, uzunluk in enumerate(desen):
+            if len(bu_atamanin_adaylari) >= _MAKS_ADAY_ATAMA_BASINA_DESEN:
+                break
+            if uzunluk < 2:
+                continue
+            buyuk = uzunluk - uzunluk // 2
+            kucuk = uzunluk // 2
+            yeni_desen = [v for k, v in enumerate(desen) if k != i] + [buyuk, kucuk]
+            anahtar = tuple(sorted(yeni_desen, reverse=True))
+            if anahtar in uretilenler:
+                continue
+            uretilenler.add(anahtar)
+            yeni_okul = deepcopy(okul)
+            yeni_okul.ders_atamalari[a_idx].blok_deseni = sorted(yeni_desen, reverse=True)
+            bu_atamanin_adaylari.append(
+                OneriAdayi(
+                    basamak=1,
+                    aciklama=(
+                        f"{atama.ders} dersinin ({', '.join(atama.subeler)}) blok "
+                        f"desenini {desen} yerine {sorted(yeni_desen, reverse=True)} "
+                        f"yapmayı (bir bloğu bölmeyi) deneyin"
+                    ),
+                    okul=yeni_okul,
+                )
+            )
+
+        adaylar.extend(bu_atamanin_adaylari)
+
+    return adaylar
+
+
+def _ogretmen_serbest_kapasite(okul: Okul, ogretmen_adi: str) -> int:
+    """Bir öğretmenin mevcut atanmış yükü düşüldükten sonra kalan serbest kapasitesini hesaplar."""
+    ogretmen = next(o for o in okul.ogretmenler if o.ad == ogretmen_adi)
+    toplam_kapasite = _ogretmen_kapasitesi(okul, ogretmen)
+    yuk = sum(a.haftalik_saat for a in okul.ders_atamalari if ogretmen_adi in a.ogretmenler)
+    return toplam_kapasite - yuk
+
+
+def _ders_kategorisi(okul: Okul, ders_adi: str) -> DersKategorisi | None:
+    """Bir ders adının kategorisini bulur (Rehberlik'i yük devrinden hariç tutmak için kullanılır)."""
+    ders = next((d for d in okul.dersler if d.ad == ders_adi), None)
+    return ders.kategori if ders else None
+
+
+def _yuk_devri_adaylari(okul: Okul, atama_indeksleri: list[int]) -> list[OneriAdayi]:
+    """Basamak 2: core bağlamındaki atamalar için branşı uygun VE kapasitesi yeten alternatif öğretmen adayları üretir.
+
+    Rehberlik dersleri hariç tutulur: B5 kuralı gereği rehberlik dersine
+    yalnızca o şubenin sınıf rehber öğretmeni girebilir -- bu, CP-SAT'a
+    hiç gitmeyen bir A-katmanı kuralıdır, dolayısıyla "branşı uygun
+    öğretmen" arayan bu genel devir mantığı rehberlik için yanıltıcı
+    olur (verebilecegi_dersler listesinde birden fazla öğretmen görünse
+    bile, her biri yalnızca KENDİ şubesinin rehberliğini verebilir).
+
+    Not (v0 basitleştirmesi): bu deneyde her atamanın tek öğretmeni var;
+    aday, atamanın öğretmen listesini yeni öğretmenle DEĞİŞTİRİR (ekleme
+    değil). Çok-öğretmenli atamalar (birlestirilebilir) gelecekte bu
+    varsayımı gözden geçirmeli.
+    """
+    adaylar: list[OneriAdayi] = []
+    for a_idx in atama_indeksleri:
+        atama = okul.ders_atamalari[a_idx]
+        if _ders_kategorisi(okul, atama.ders) == DersKategorisi.REHBERLIK_DIGER:
+            continue
+        bu_atamanin_adaylari: list[OneriAdayi] = []
+        for ogretmen in okul.ogretmenler:
+            if len(bu_atamanin_adaylari) >= _MAKS_ADAY_ATAMA_BASINA_YUK_DEVRI:
+                break
+            if ogretmen.ad in atama.ogretmenler:
+                continue
+            if atama.ders not in ogretmen.verebilecegi_dersler:
+                continue
+            if _ogretmen_serbest_kapasite(okul, ogretmen.ad) < atama.haftalik_saat:
+                continue
+            yeni_okul = deepcopy(okul)
+            yeni_okul.ders_atamalari[a_idx].ogretmenler = [ogretmen.ad]
+            eski_ogretmen = atama.ogretmenler[0] if atama.ogretmenler else "(atanmamış)"
+            bu_atamanin_adaylari.append(
+                OneriAdayi(
+                    basamak=2,
+                    aciklama=(
+                        f"{atama.ders} dersini ({', '.join(atama.subeler)}) "
+                        f"{eski_ogretmen} yerine {ogretmen.ad} öğretmenine "
+                        f"devretmeyi deneyin"
+                    ),
+                    okul=yeni_okul,
+                )
+            )
+        adaylar.extend(bu_atamanin_adaylari)
+    return adaylar
+
+
+def _sabitleme_adaylari(okul: Okul, atama_indeksleri: list[int]) -> list[OneriAdayi]:
+    """Basamak 3: YALNIZ veride gerçekten bir sabitleme (sabit_dilimler) varsa gevşetme adayı üretir.
+
+    Boş gün TERCİHİ (bos_gun_tercihi) burada gevşetme adayı OLARAK
+    ÜRETİLMEZ: B3 sert bir garantidir (herhangi bir boş gün yeter),
+    C1 ise yumuşak bir tercihtir (hangi günün tercih edildiği). Tercihi
+    gevşetmek B3'ün çözümsüzlüğüne çare olmaz -- bu bir kategori
+    hatasıdır (bkz. Karar 14).
+    """
+    adaylar: list[OneriAdayi] = []
+    for a_idx in atama_indeksleri:
+        atama = okul.ders_atamalari[a_idx]
+        if not atama.sabit_dilimler:
+            continue
+        yeni_okul = deepcopy(okul)
+        yeni_okul.ders_atamalari[a_idx].sabit_dilimler = None
+        adaylar.append(
+            OneriAdayi(
+                basamak=3,
+                aciklama=(
+                    f"{atama.ders} dersindeki ({', '.join(atama.subeler)}) sabitlenmiş "
+                    f"saat(ler)i gevşetmeyi deneyin"
+                ),
+                okul=yeni_okul,
+            )
+        )
+    return adaylar
+
+
+def _kisisel_tercih_adaylari(
+    okul: Okul, kapanis_gruplari: list[tuple[str, KapanisNedeni]]
+) -> list[OneriAdayi]:
+    """Basamak 4: kişisel tercih nedenli kapanışları gevşetme adayları üretir (son çare, çok-okul uyarısı yalnız uygunsa)."""
+    adaylar: list[OneriAdayi] = []
+    for ogretmen_adi, neden in kapanis_gruplari:
+        if neden != KapanisNedeni.KISISEL_TERCIH:
+            continue
+        yeni_okul = deepcopy(okul)
+        yeni_ogretmen = next(o for o in yeni_okul.ogretmenler if o.ad == ogretmen_adi)
+        gunler = sorted(
+            {k.gun for k in yeni_ogretmen.kapanislar if k.neden == KapanisNedeni.KISISEL_TERCIH}
+        )
+        cok_okullu = any(k.neden == KapanisNedeni.DIS_OKUL for k in yeni_ogretmen.kapanislar)
+        yeni_ogretmen.kapanislar = [
+            k for k in yeni_ogretmen.kapanislar if k.neden != KapanisNedeni.KISISEL_TERCIH
+        ]
+
+        aciklama = (
+            f"{ogretmen_adi} öğretmeninin {_gunleri_metne_cevir(gunler)} günlerindeki "
+            f"kişisel tercih günü/saatlerini gözden geçirmeyi deneyin"
+        )
+        if cok_okullu:
+            aciklama += (
+                " (uyarı: bu öğretmen başka bir okulda da ders veriyor, müsaitlik "
+                "değişikliği o okulun programını da etkileyebilir -- çok-okul zinciri)"
+            )
+        adaylar.append(OneriAdayi(basamak=4, aciklama=aciklama, okul=yeni_okul))
+    return adaylar
+
+
+def _idari_adaylari(
+    okul: Okul, kapanis_gruplari: list[tuple[str, KapanisNedeni]]
+) -> list[OneriAdayi]:
+    """Basamak 5: idari nedenli kapanışları gevşetme adayları üretir; yalnız 1-4 hiç doğrulanmış aday üretmediyse denenir."""
+    adaylar: list[OneriAdayi] = []
+    for ogretmen_adi, neden in kapanis_gruplari:
+        if neden != KapanisNedeni.IDARI:
+            continue
+        yeni_okul = deepcopy(okul)
+        yeni_ogretmen = next(o for o in yeni_okul.ogretmenler if o.ad == ogretmen_adi)
+        gunler = sorted(
+            {k.gun for k in yeni_ogretmen.kapanislar if k.neden == KapanisNedeni.IDARI}
+        )
+        yeni_ogretmen.kapanislar = [
+            k for k in yeni_ogretmen.kapanislar if k.neden != KapanisNedeni.IDARI
+        ]
+        adaylar.append(
+            OneriAdayi(
+                basamak=5,
+                aciklama=(
+                    f"{ogretmen_adi} öğretmeninin {_gunleri_metne_cevir(gunler)} "
+                    f"günlerindeki idari görevini azaltmayı ya da başka güne almayı "
+                    f"deneyin (okul yönetiminin zorunlu kararı -- ancak başka yol "
+                    f"görünmediği için öneriliyor)"
+                ),
+                okul=yeni_okul,
+            )
+        )
+    return adaylar
+
+
+def _hizli_modda_cozulebilir_mi(okul: Okul) -> bool:
+    """Bir okulun hipotetik durumunun HIZLI modda çözülüp çözülemediğini denetler (doğrulama döngüsünün çekirdeği).
+
+    Hem A-katmanı (veri tutarlılığı: örn. B5 rehberlik ataması) hem de
+    CP-SAT sert kuralları kontrol edilir -- A-katmanı CP-SAT'a hiç
+    gitmediğinden, yalnız çözücüyü çalıştırmak B5 gibi bir ihlali
+    kaçırabilir ve bir adayı yanlışlıkla "çözülüyor" sayabilir.
+    """
+    if a_katmani_dogrulama(okul):
+        return False
+    try:
+        km = kur_temel_degiskenler(okul, tanilama_modu=False)
+    except ValueError:
+        return False
+    sert_kurallari_uygula(km)
+    cozucu = cp_model.CpSolver()
+    cozucu.parameters.max_time_in_seconds = 10
+    durum = cozucu.Solve(km.model)
+    return durum in (cp_model.OPTIMAL, cp_model.FEASIBLE)
+
+
+def dogrulanmis_oneriler_uret(
+    okul: Okul, cekirdek: list[VarsayimAnahtari]
+) -> tuple[list[str], int, float]:
+    """Basamak sırasıyla (desen -> yük devri -> sabitleme -> kişisel tercih -> idari) aday üretir, her adayı hipotetik olarak HIZLI modda çözer.
+
+    Rapora yalnız çözüm açan adaylar girer ("denendi" etiketiyle).
+    Dönüş: (onaylanmış öneri cümleleri, toplam deneme sayısı, geçen süre saniye).
+    """
+    baslangic = time.perf_counter()
+
     b3_ogretmenler = sorted({va.ogretmen_adi for va in cekirdek if va.tur == "B3"})
     b6_ogretmenler = sorted({va.ogretmen_adi for va in cekirdek if va.tur == "B6"})
     b4_atamalar = sorted({va.atama_index for va in cekirdek if va.tur == "B4"})
     kapanis_gruplari = [(va.ogretmen_adi, va.neden) for va in cekirdek if va.tur == "KAPANIS"]
 
-    oneriler: list[str] = []
+    core_ogretmenler = set(b3_ogretmenler) | set(b6_ogretmenler)
+    core_atama_indeksleri = set(b4_atamalar)
+    for a_idx, atama in enumerate(okul.ders_atamalari):
+        if core_ogretmenler & set(atama.ogretmenler):
+            core_atama_indeksleri.add(a_idx)
+    core_atama_indeksleri_sirali = sorted(core_atama_indeksleri)
 
-    # 1. Desen değişikliği -- en ucuz, ilk denenecek seçenek.
-    for a_idx in b4_atamalar:
-        atama = okul.ders_atamalari[a_idx]
-        oneriler.append(
-            f"{atama.ders} dersinin ({', '.join(atama.subeler)}) blok sayısını "
-            f"azaltmayı düşünün (şu an: {atama.blok_deseni}) -- her blok ayrı bir "
-            f"gün istediğinden, blok sayısı azalırsa ihtiyaç duyulan gün sayısı da azalır."
-        )
+    basamak_aday_listeleri = [
+        _desen_adaylari(okul, core_atama_indeksleri_sirali),
+        _yuk_devri_adaylari(okul, core_atama_indeksleri_sirali),
+        _sabitleme_adaylari(okul, core_atama_indeksleri_sirali),
+        _kisisel_tercih_adaylari(okul, kapanis_gruplari),
+    ]
 
-    # 2. Tercih / sabitleme gevşetmeleri.
-    for ogretmen_adi in sorted(set(b3_ogretmenler) | set(b6_ogretmenler)):
-        oneriler.append(
-            f"{ogretmen_adi} için boş gün tercihinden bu hafta ödün vermeyi ya da "
-            f"varsa sabitlenmiş bir dersini gevşetmeyi değerlendirin."
-        )
+    onaylanmis: list[str] = []
+    deneme_sayisi = 0
 
-    # 3. En son ve uyarılı müsaitlik.
-    for ogretmen_adi, neden in kapanis_gruplari:
-        gunler = _gunleri_metne_cevir(_kapanis_gunlerini_bul(okul, ogretmen_adi, neden))
-        if neden == KapanisNedeni.DIS_OKUL:
-            oneriler.append(
-                f"{_iyelik_eki(ogretmen_adi)} {gunler} günlerindeki dışOkul kapanışı "
-                f"GEVŞETME ÖNERİSİ OLARAK SUNULMAZ (başka bir okula karşı taahhüt) "
-                f"-- bu kapanışı değiştirmeyi düşünmeyin."
+    for adaylar in basamak_aday_listeleri:
+        if deneme_sayisi >= _MAKS_TOPLAM_DENEME:
+            break
+        for aday in adaylar:
+            if deneme_sayisi >= _MAKS_TOPLAM_DENEME:
+                break
+            deneme_sayisi += 1
+            if _hizli_modda_cozulebilir_mi(aday.okul):
+                onaylanmis.append(f"{aday.aciklama} (denendi: program kurulabiliyor).")
+
+    en_az_kotu_yol: str | None = None
+    if not onaylanmis:
+        idari_adaylari = _idari_adaylari(okul, kapanis_gruplari)
+        for aday in idari_adaylari[:_MAKS_EK_DENEME_IDARI]:
+            deneme_sayisi += 1
+            if _hizli_modda_cozulebilir_mi(aday.okul):
+                onaylanmis.append(f"{aday.aciklama} (denendi: program kurulabiliyor).")
+            elif en_az_kotu_yol is None:
+                en_az_kotu_yol = aday.aciklama
+
+        if not onaylanmis and en_az_kotu_yol is not None:
+            onaylanmis.append(
+                "Üretilen hiçbir aday tek başına çözüm açmadı. En az kötü yol: "
+                + en_az_kotu_yol
+                + " (bu tek başına yeterli olmayabilir, başka değişikliklerle "
+                "birlikte denenmesi gerekebilir)."
             )
-        else:
-            oneriler.append(
-                f"Son çare olarak, {_iyelik_eki(ogretmen_adi)} {gunler} günlerindeki "
-                f"{_NEDEN_ADLARI[neden]} kapanışını gözden geçirmeyi değerlendirin. "
-                f"Uyarı: müsaitlik değişikliği başka okulların programını da "
-                f"etkileyebilir (çok-okul zinciri) -- önce yukarıdaki seçenekleri deneyin."
-            )
 
-    return oneriler
+    sure = time.perf_counter() - baslangic
+    return onaylanmis, deneme_sayisi, sure
 
 
 def tanila(okul: Okul) -> str:
@@ -246,18 +604,32 @@ def tanila(okul: Okul) -> str:
         )
 
     cumleler = cekirdek_cumleleri(okul, cekirdek)
-    oneriler = gevsetme_onerileri(okul, cekirdek)
+    onaylanmis_oneriler, _deneme_sayisi, _sure = dogrulanmis_oneriler_uret(okul, cekirdek)
+    neden_onerilmiyor = _neden_onerilmiyor_bolumu(cekirdek)
 
     satirlar = ["Bu program şu anki verilerle kurulamıyor. Nedenleri:"]
     for i, cumle in enumerate(cumleler, start=1):
         satirlar.append(f"  {i}. {cumle}")
 
-    satirlar.append("\nÖnerilen çözüm adımları (önce yukarıdakiler denenmeli):")
-    for i, oneri in enumerate(oneriler, start=1):
-        satirlar.append(f"  {i}. {oneri}")
+    satirlar.append("\nÖnerilen çözüm adımları (yalnız denenip çözüm açtığı doğrulananlar):")
+    if onaylanmis_oneriler:
+        for i, oneri in enumerate(onaylanmis_oneriler, start=1):
+            satirlar.append(f"  {i}. {oneri}")
+    else:
+        satirlar.append("  Üretilen hiçbir aday çözüm açmadı.")
+
+    if neden_onerilmiyor:
+        satirlar.append("\nNeden bazı seçenekler önerilmiyor:")
+        for satir in neden_onerilmiyor:
+            satirlar.append(f"  - {satir}")
 
     satirlar.append(
         "\nNot: bu liste sorunu açıklamaya yeterlidir; ancak tek mümkün açıklama "
         "olmayabilir -- başka bir kısıt kombinasyonu da aynı sonuca yol açıyor olabilir."
     )
+
+    teknik = _teknik_referans(okul, cekirdek)
+    if teknik:
+        satirlar.append(f"\n{teknik}")
+
     return "\n".join(satirlar)

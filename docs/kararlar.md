@@ -124,3 +124,17 @@ kapanışlar varsayım anahtarlı kısıt olarak modellenir. Akış:
 hızlı çöz → UNSAT ise tanılama modunda yeniden kur → core çıkar.
 Maliyet: çözümsüz durumda ikinci model kurulumu (bu ölçekte
 önemsiz). Ayrıntı: cevrim-tablosu.md §4.
+
+## 14. Gevşetme önerisi politikası + doğrulama döngüsü (4 Tem 2026)
+
+Öneriler unsat core girdilerinden değil, core'da adı geçen
+varlıkların bağlamından üretilir. Basamaklar: desen değişikliği →
+yük devri → sabitleme/tercih (yalnız veri destekliyorsa) →
+kişisel tercih kapanışı (çok-okul uyarısı yalnız çok-okullu
+öğretmende) → idari kapanış (yalnız üst basamaklar doğrulanmış
+çözüm vermediyse; saha gerçeği: idari kapanışlar zorunlu nedenlerle
+konur). dışOkul ve boşGün asla önerilmez. Her aday hipotetik
+uygulanıp hızlı modda yeniden çözülür; rapora yalnız çözüm açan
+adaylar girer ("denendi" etiketi). Bu döngü, İleride #7
+karşı-olgusal motorun MVP'ye sığan çekirdeğidir. Kapsam sınırı:
+yalnız üretilen adaylar denenir, arama yapılmaz.
