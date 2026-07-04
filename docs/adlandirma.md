@@ -21,6 +21,11 @@ Türkçe karakterler tanımlayıcılarda ASCII'ye katlanır:
 Kod ASCII'dir; dokümantasyon, yorum satırları ve kullanıcıya görünen
 her metin tam Türkçe'dir.
 
+ASCII katlama yalnız tanımlayıcılar (değişken, sınıf, dosya, JSON
+alan adları) içindir. Veri değerleri — kişi adları, ders adları,
+kullanıcıya görünen her metin — tam Türkçe yazılır. Örnek veri de
+bu kurala tabidir.
+
 ## Kural 3 — Biçim, ekosistem standardını izler
 
 Sözcükler Türkçe, casing dilin kendisinindir.
