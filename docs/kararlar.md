@@ -103,3 +103,15 @@ onu depo dışı yoldan okur. .gitignore ikinci savunma hattı olarak
 `okul_anonim*` kalıbını içerir.
 Not: "veri cihazdan çıkmaz" tezini savunan projenin kendi verisi
 konusunda kusursuz olması itibar gereğidir.
+
+## 12. Pencere tanımı: varsayılanda tüm kapanışlar pencereyi böler;
+bölmeyen nedenler parametrik (4 Tem 2026)
+
+KuralAyarlari.pencereyi_bolmeyen_nedenler kümesi (varsayılan boş)
+hangi kapanış nedenlerinin bekleme sayılacağını belirler. Gerekçe:
+(a) bu okulun başat riski fizibilite — en gevşek yorum çözüm uzayını
+daraltmaz; (b) "kapanışta öğretmen nerede?" sorusunun cevabı nedene
+ve kişiye göre değişiyor (idari = dolu mesai, bekleme değil) — sabit
+kural değil ayar gerektirir. Kör nokta telafisi: kalite karnesine
+"kapanış bitişiğindeki bekleme dilimleri" bilgi satırı eklenir
+(kısıt değil, rapor). Ayrıntı: cevrim-tablosu.md §0 ve §5.
