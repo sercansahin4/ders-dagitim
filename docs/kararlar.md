@@ -138,3 +138,29 @@ uygulanıp hızlı modda yeniden çözülür; rapora yalnız çözüm açan
 adaylar girer ("denendi" etiketi). Bu döngü, İleride #7
 karşı-olgusal motorun MVP'ye sığan çekirdeğidir. Kapsam sınırı:
 yalnız üretilen adaylar denenir, arama yapılmaz.
+
+## Karar 15 — Tanılama öneri motoruna kural-muafiyeti aday sınıfı (5 Tem 2026)
+
+**Karar:** Gevşetme öneri hiyerarşisi, veri değişikliklerinin (desen değişikliği,
+yük devri, sabitleme/tercih gevşetme, kapanış gevşetme) ötesine genişletilecek:
+**öğretmen-bazlı kural muafiyeti** yeni bir aday sınıfı olarak eklenecek. İlk
+somut örnek: dış okul yükü nedeniyle boş günün yapısal olarak imkânsız olduğu
+öğretmenler için B3'ün (boş gün garantisi) o öğretmene özel kapatılması önerisi.
+Muafiyet adayları da diğer adaylar gibi yeniden-çöz doğrulamasından geçer.
+
+**Gerekçe:** Mutasyon testi (dışOkul kapanışı senaryosu, "Deniz" vakası) mevcut
+hiyerarşinin çıkmazını gösterdi: pazartesi–perşembe dış okulda olan bir öğretmen
+için B3 tanım gereği sağlanamaz (bu okulda tek ders bile alsa cuma dolu; cuma
+boş kalsa bu okulda hiç dersi yok). Mevcut aday sınıflarının hiçbiri doğrulanmış
+öneri üretemedi ve rapor "hiçbir aday çözüm açmadı" ile kapandı — dürüst ama
+eyleme dönük değil. Oysa KuralAyarlari veri modelinde mevcut ve kisit-envanteri
+B4 için "gevşetilebilir ayar" ilkesini zaten kaydetmişti; kural parametreleri de
+meşru gevşetme adaylarıdır.
+
+**Kapsam ve zamanlama:** Uygulama Hafta 3–4 (çözücü çekirdeği). Hafta 2 geçme
+kriterini etkilemez: teşhis anlamlıdır, eksik olan öneri katmanıdır.
+
+**Açık alt soru (uygulamadan önce yanıtlanacak):** Muafiyet önerisinin uyarı
+metni sahadaki yönetim pratiğine göre yazılacak — böyle bir öğretmen için okul
+yönetimi bunu olağan durum mu, norm/görevlendirme düzeyinde çözülmesi gereken
+anomali mi sayar?
