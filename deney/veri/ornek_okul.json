@@ -134,6 +134,7 @@
     "ardisiklik_siniri": 2,
     "pencere_sert_esigi": 4,
     "pencereyi_bolmeyen_nedenler": [],
+    "b3_muaf_ogretmenler": [],
     "sayisal_dilim_cezasi": [0, 0, 0, 0, 1, 2, 3, 4],
     "sanat_spor_dilim_cezasi": [4, 3, 2, 1, 0, 0, 0, 0]
   }

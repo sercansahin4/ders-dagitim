@@ -24,6 +24,8 @@ from model import (
     Ogretmen,
     Okul,
     _bos_gun_icin_rezerve_edilecek_acik_dilim,
+    _kural_ayarlari_from_dict,
+    _kural_ayarlari_to_dict,
     _ogretmen_kapasitesi,
 )
 
@@ -82,6 +84,42 @@ class BosGunRezerviTesti(unittest.TestCase):
         self.assertEqual(_bos_gun_icin_rezerve_edilecek_acik_dilim(okul, ogretmen), 3)
         # 40 toplam - 5 kapanış - 3 rezerv = 32 atanabilir dilim.
         self.assertEqual(_ogretmen_kapasitesi(okul, ogretmen), 32)
+
+
+class B3MuafiyetiTesti(unittest.TestCase):
+    """Karar 17: b3_muaf_ogretmenler kümesinin kapasite hesabına ve JSON çevrimine etkisini doğrular."""
+
+    def test_muaf_ogretmende_bos_gun_rezervi_dusulmez(self):
+        """Muaf öğretmende rezerv 0: kapasite yalnız kapanışlarla azalır.
+
+        3 günü dışOkul ile tamamen kapalı profil: normalde kalan 2 açık
+        günden biri (8 dilim) rezerve edilir; muafiyetle edilmez.
+        """
+        ogretmen = Ogretmen(
+            ad="Uydurma Cemil",
+            kapanislar=[
+                Kapanis(gun=g, dilimler=TUM_DILIMLER, neden=KapanisNedeni.DIS_OKUL)
+                for g in (3, 4, 5)
+            ],
+        )
+        okul = _bos_okul([ogretmen])
+        # Muafiyet yokken: 40 - 24 kapanış - 8 rezerv = 8.
+        self.assertEqual(_ogretmen_kapasitesi(okul, ogretmen), 8)
+        # Muafiyetle: 40 - 24 kapanış - 0 rezerv = 16.
+        okul.kural_ayarlari.b3_muaf_ogretmenler = {"Uydurma Cemil"}
+        self.assertEqual(_ogretmen_kapasitesi(okul, ogretmen), 16)
+
+    def test_json_cevrimi_gidis_donus(self):
+        """b3_muaf_ogretmenler alanı to_dict/from_dict çevriminde korunur; eksik alan boş küme verir."""
+        kural = KuralAyarlari(b3_muaf_ogretmenler={"Uydurma Ayşe", "Uydurma Burak"})
+        sozluk = _kural_ayarlari_to_dict(kural)
+        self.assertEqual(
+            sozluk["b3_muaf_ogretmenler"], ["Uydurma Ayşe", "Uydurma Burak"]
+        )
+        geri = _kural_ayarlari_from_dict(sozluk)
+        self.assertEqual(geri.b3_muaf_ogretmenler, {"Uydurma Ayşe", "Uydurma Burak"})
+        # Eski JSON'larda alan yok: varsayılan boş küme.
+        self.assertEqual(_kural_ayarlari_from_dict({}).b3_muaf_ogretmenler, set())
 
 
 if __name__ == "__main__":

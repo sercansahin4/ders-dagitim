@@ -174,8 +174,15 @@ def _yeni_varsayim(km: KisitModeli, isim: str, **kwargs) -> Optional[cp_model.In
 
 
 def b3_bos_gun_garantisi(km: KisitModeli) -> None:
-    """Cevrim-tablosu §1 B3: dışOkul kapanışı olmayan günler üzerinden her öğretmene en az bir tam boş gün garanti eder (öğretmen başına bir varsayım anahtarı, tanılama modunda)."""
+    """Cevrim-tablosu §1 B3: dışOkul kapanışı olmayan günler üzerinden her öğretmene en az bir tam boş gün garanti eder (öğretmen başına bir varsayım anahtarı, tanılama modunda).
+
+    Karar 17: kural_ayarlari.b3_muaf_ogretmenler kümesindeki öğretmen
+    için kısıt hiç kurulmaz (varsayım anahtarı da yaratılmaz -- muaf
+    öğretmen unsat core'da B3 ile görünmemeli).
+    """
     for ogretmen in km.okul.ogretmenler:
+        if ogretmen.ad in km.okul.kural_ayarlari.b3_muaf_ogretmenler:
+            continue
         dis_okul_gunleri = {
             k.gun for k in ogretmen.kapanislar if k.neden == KapanisNedeni.DIS_OKUL
         }

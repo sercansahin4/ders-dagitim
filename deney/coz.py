@@ -112,6 +112,10 @@ def cozum_denetle(okul: Okul, yerlesim: Yerlesim) -> list[str]:
     Gerekçe: çözücü kendi ödevini kendisi kontrol etmemeli -- bu
     fonksiyon km/CP-SAT nesnelerine hiç dokunmaz, yalnızca Okul +
     Yerlesim'den yeniden hesaplar.
+
+    Dönen listede "[muaf]" önekli satırlar ihlal değil bilgi notudur:
+    B3'ten muaf tutulan (Karar 17) öğretmenlerin boş gün durumunu
+    raporlar; ihlal sayımı yapan çağıranlar bu öneki ayıklamalıdır.
     """
     sorunlar: list[str] = []
 
@@ -149,7 +153,8 @@ def cozum_denetle(okul: Okul, yerlesim: Yerlesim) -> list[str]:
                 )
 
     # 2. Her öğretmende, dışOkul kapanışı olmayan günler arasında en az
-    #    bir tam boş gün olmalı (B3).
+    #    bir tam boş gün olmalı (B3). Muaf öğretmen (Karar 17) ihlal
+    #    üretmez; durumu "[muaf]" bilgi notuyla raporlanır.
     for ogretmen in okul.ogretmenler:
         dis_okul_gunleri = {
             k.gun for k in ogretmen.kapanislar if k.neden == KapanisNedeni.DIS_OKUL
@@ -158,7 +163,17 @@ def cozum_denetle(okul: Okul, yerlesim: Yerlesim) -> list[str]:
         uygun_gunler = [
             g for g in range(1, okul.izgara.gun_sayisi + 1) if g not in dis_okul_gunleri
         ]
-        if not any(g not in calisilan_gunler for g in uygun_gunler):
+        bos_gun_var = any(g not in calisilan_gunler for g in uygun_gunler)
+        if ogretmen.ad in okul.kural_ayarlari.b3_muaf_ogretmenler:
+            durum_notu = (
+                "tam boş günü yine de var" if bos_gun_var else "tam boş günü yok"
+            )
+            sorunlar.append(
+                f"[muaf] {ogretmen.ad}: B3 kontrolünden muaf "
+                f"(kural_ayarlari.b3_muaf_ogretmenler); {durum_notu}, "
+                f"ihlal sayılmadı."
+            )
+        elif not bos_gun_var:
             sorunlar.append(
                 f"{ogretmen.ad}: dışOkul kapanışı olmayan hiçbir günde tam boş gün "
                 f"yok (B3 ihlali)."
@@ -259,11 +274,16 @@ if __name__ == "__main__":
 
         print("\n=== Bağımsız denetçi raporu ===")
         sorunlar = cozum_denetle(okul, yerlesim)
-        if sorunlar:
-            for sorun in sorunlar:
+        ihlaller = [s for s in sorunlar if not s.startswith("[muaf]")]
+        notlar = [s for s in sorunlar if s.startswith("[muaf]")]
+        for not_satiri in notlar:
+            print(f"  - {not_satiri}")
+        if ihlaller:
+            for sorun in ihlaller:
                 print(f"  - {sorun}")
         else:
             print(
-                "Sorun bulunamadı: çakışma yok, her öğretmende boş gün var, "
-                "kapanış ihlali yok, gün/blok ve HDS toplamları tutarlı."
+                "İhlal bulunamadı: çakışma yok, muaf olmayan her öğretmende "
+                "boş gün var, kapanış ihlali yok, gün/blok ve HDS toplamları "
+                "tutarlı."
             )

@@ -92,12 +92,16 @@ class DersAtamasi:
 
 @dataclass
 class KuralAyarlari:
-    """Yumuşak kısıt eşiklerini ve pencere/ceza parametrelerini tutar (Karar 12 dahil)."""
+    """Yumuşak kısıt eşiklerini ve pencere/ceza parametrelerini tutar (Karar 12 ve 17 dahil)."""
 
     ogretmen_sube_gunluk_toplam: int = 3
     ardisiklik_siniri: int = 2
     pencere_sert_esigi: int = 4
     pencereyi_bolmeyen_nedenler: set[KapanisNedeni] = field(default_factory=set)
+    # Karar 17: bu kümede adı geçen öğretmenler için B3 boş gün
+    # garantisi aranmaz (kısıt kurulmaz, kapasite rezervi 0, denetçi
+    # "muaf" notuyla atlar). Varsayılan boş: kural herkese uygulanır.
+    b3_muaf_ogretmenler: set[str] = field(default_factory=set)
     sayisal_dilim_cezasi: list[int] = field(
         default_factory=lambda: [0, 0, 0, 0, 1, 2, 3, 4]
     )
@@ -253,6 +257,7 @@ def _kural_ayarlari_to_dict(kural: KuralAyarlari) -> dict:
         "pencereyi_bolmeyen_nedenler": sorted(
             neden.name for neden in kural.pencereyi_bolmeyen_nedenler
         ),
+        "b3_muaf_ogretmenler": sorted(kural.b3_muaf_ogretmenler),
         "sayisal_dilim_cezasi": list(kural.sayisal_dilim_cezasi),
         "sanat_spor_dilim_cezasi": list(kural.sanat_spor_dilim_cezasi),
     }
@@ -270,6 +275,7 @@ def _kural_ayarlari_from_dict(veri: dict) -> KuralAyarlari:
         pencereyi_bolmeyen_nedenler={
             KapanisNedeni[ad] for ad in veri.get("pencereyi_bolmeyen_nedenler", [])
         },
+        b3_muaf_ogretmenler=set(veri.get("b3_muaf_ogretmenler", [])),
         sayisal_dilim_cezasi=list(
             veri.get("sayisal_dilim_cezasi", varsayilan.sayisal_dilim_cezasi)
         ),
@@ -466,10 +472,16 @@ def _bos_gun_icin_rezerve_edilecek_acik_dilim(okul: Okul, ogretmen: Ogretmen) ->
 
 
 def _ogretmen_kapasitesi(okul: Okul, ogretmen: Ogretmen) -> int:
-    """Bir öğretmenin toplam dilim sayısından kapanışları ve garanti edilecek boş günün açık dilimlerini düşerek atanabilir kapasitesini hesaplar."""
+    """Bir öğretmenin toplam dilim sayısından kapanışları ve garanti edilecek boş günün açık dilimlerini düşerek atanabilir kapasitesini hesaplar.
+
+    B3'ten muaf öğretmende (Karar 17) boş gün rezervi 0'dır.
+    """
     toplam_dilim = okul.izgara.gun_sayisi * okul.izgara.dilim_sayisi
     kapanis_dilim_sayisi = sum(len(k.dilimler) for k in ogretmen.kapanislar)
-    rezerve = _bos_gun_icin_rezerve_edilecek_acik_dilim(okul, ogretmen)
+    if ogretmen.ad in okul.kural_ayarlari.b3_muaf_ogretmenler:
+        rezerve = 0
+    else:
+        rezerve = _bos_gun_icin_rezerve_edilecek_acik_dilim(okul, ogretmen)
     return toplam_dilim - kapanis_dilim_sayisi - rezerve
 
 
