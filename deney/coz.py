@@ -6,6 +6,9 @@ yönetildiği modül.
 
 v0: amaç fonksiyonu yok (yalnızca fizibilite). Katmanlama Hafta 2'nin
 sonraki paketinde (C kuralları) eklenecek; bkz. docs/cevrim-tablosu.md §3.
+
+Ana akış çözücüden önce A-katmanı doğrulamasından geçer (A-kapısı):
+hata varsa varsayılan davranış durmak, --devam bayrağı bilinçli istisna.
 """
 
 from __future__ import annotations
@@ -16,7 +19,14 @@ from typing import Optional
 from ortools.sat.python import cp_model
 
 from kisitlar import KisitModeli, kur_temel_degiskenler, sert_kurallari_uygula
-from model import KapanisNedeni, Okul, Yerlesim, YerlesimGirdisi, okul_yukle
+from model import (
+    KapanisNedeni,
+    Okul,
+    Yerlesim,
+    YerlesimGirdisi,
+    a_katmani_dogrulama,
+    okul_yukle,
+)
 
 GUN_ADLARI = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma"]
 
@@ -191,8 +201,47 @@ def cozum_denetle(okul: Okul, yerlesim: Yerlesim) -> list[str]:
 
 
 if __name__ == "__main__":
-    ornek_yolu = Path(__file__).parent / "veri" / "ornek_okul.json"
-    okul = okul_yukle(ornek_yolu)
+    import argparse
+    import sys
+
+    parser = argparse.ArgumentParser(
+        description="Okul verisini A-katmanından geçirip hızlı modda çözer."
+    )
+    parser.add_argument(
+        "okul_dosyasi",
+        nargs="?",
+        default=str(Path(__file__).parent / "veri" / "ornek_okul.json"),
+        help="Okul şemasında JSON dosyası (varsayılan: veri/ornek_okul.json).",
+    )
+    parser.add_argument(
+        "--devam",
+        action="store_true",
+        help="A-katmanı hataları olsa da çözücüyü (ve gerekirse tanılamayı) çalıştır.",
+    )
+    args = parser.parse_args()
+    okul = okul_yukle(args.okul_dosyasi)
+
+    # A-kapısı: çözücüden önce en ucuz teşhis katmanı koşar; hata varsa
+    # varsayılan davranış durmaktır (çözücünün UNSAT'ı A-katmanının
+    # zaten söylediğini pahalı yoldan tekrarlar). --devam bilinçli bir
+    # istisnadır: A-katmanı ve unsat core aynı gerçeğin iki bağımsız
+    # ölçümü; çeliştiklerinde çelişkinin kendisi teşhis değeri taşır
+    # (örn. A-katmanı hata verirken çözücünün SAT bulması A-katmanı
+    # formülünde fazla-kısıtlılık demektir).
+    a_hatalari = a_katmani_dogrulama(okul)
+    if a_hatalari:
+        if args.devam:
+            print("UYARI: A-katmanı hataları mevcut; --devam bayrağıyla koşuldu.\n")
+        print(f"A-katmanı doğrulama: {len(a_hatalari)} sorun bulundu:")
+        for hata in a_hatalari:
+            print(f"  - {hata}")
+        if not args.devam:
+            print(
+                "\nÇözücü çalıştırılmadı. Hataları giderin ya da bilinçli "
+                "olarak --devam bayrağıyla yeniden çalıştırın."
+            )
+            sys.exit(1)
+        print()
 
     cozucu, km, yerlesim, durum = coz(okul)
 
