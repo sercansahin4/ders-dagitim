@@ -177,3 +177,28 @@ rehberlik = sıradan DersAtamasi + doğrulama kuralları.
 Ayrıntı: docs/adlandirma.md çekirdek sözlüğü.
 Not: karar 3 Temmuz'da alınmış, o gün yalnız proje talimatlarına
 yazılmıştı; kanonik kayıt buraya taşındı.
+
+## 17. B3 öğretmen muafiyeti — veri tarafı öne alındı (5 Tem 2026)
+
+KuralAyarlari'na `b3_muaf_ogretmenler` alanı (öğretmen adı kümesi,
+varsayılan boş) eklenir: kümede olan öğretmen için boş gün garantisi
+(B3) kurulmaz; A-katmanı kapasite hesabında boş gün rezervi düşülmez;
+bağımsız denetçi (cozum_denetle) B3 kontrolünde bu öğretmenleri atlar.
+
+Gerekçe: İlk gerçek veri koşusu, Karar 15'in öngördüğü yapısal B3
+imkânsızlığının kendi okulumuzda iki öğretmende (ağır dış okul yüklü
+profil) fiilen var olduğunu gösterdi; yürürlükteki program da bu iki
+öğretmende boş günsüz. Gerçek veriyle çözüm elde edebilmek için
+muafiyetin VERİ tarafı (ayar alanı + kısıt atlaması) öne alındı.
+Karar 15'in asıl gövdesi — tanılamanın bu muafiyeti doğrulanmış aday
+olarak ÖNERMESİ — Hafta 3-4'te kalır; bugünkü haliyle muafiyet yalnız
+elle ayarlanabilir.
+
+Kapsam notu: Veri modeli v0 dondurması (Karar 16) ihlal edilmemiştir;
+varlık setine dokunulmuyor, KuralAyarlari zaten parametrik ayar
+taşıyıcısıdır (bkz. Karar 12 emsali).
+
+Saha bulgusu (Karar 15'in açık alt sorusuna girdi): 12 öğretmenin
+2'sinde muafiyet fiilen mevcut durum; uyarı metni "istisnai anomali"
+değil "çok-okullu ağır yük profilinde bilinen durum" tonunda
+yazılmalı. Nihai ifade kullanıcının saha yorumuyla kesinleşecek.
