@@ -305,6 +305,34 @@ def okul_from_dict(veri: dict) -> Okul:
     )
 
 
+def _yerlesim_girdisi_from_dict(veri: dict) -> YerlesimGirdisi:
+    """JSON sözlüğünden bir YerlesimGirdisi nesnesi kurar."""
+    return YerlesimGirdisi(
+        ders_atamasi_index=veri["ders_atamasi_index"],
+        gun=veri["gun"],
+        baslangic_dilim=veri["baslangic_dilim"],
+        sure=veri["sure"],
+    )
+
+
+def yerlesim_from_dict(veri: dict) -> Yerlesim:
+    """JSON sözlüğünden bir Yerlesim nesnesi kurar."""
+    return Yerlesim(
+        girdiler=[_yerlesim_girdisi_from_dict(g) for g in veri.get("girdiler", [])]
+    )
+
+
+def yerlesim_yukle(yol: Path | str) -> Yerlesim:
+    """Diskteki bir JSON dosyasından Yerlesim nesnesini yükler.
+
+    Girdilerdeki ders_atamasi_index alanları, yerleşimin üretildiği Okul
+    dosyasındaki ders_atamalari listesinin sırasına bağlıdır; iki dosya
+    birlikte taşınmalıdır.
+    """
+    with open(yol, "r", encoding="utf-8") as dosya:
+        return yerlesim_from_dict(json.load(dosya))
+
+
 def okul_yukle(yol: Path | str) -> Okul:
     """Diskteki bir JSON dosyasından Okul nesnesini yükler."""
     with open(yol, "r", encoding="utf-8") as dosya:
