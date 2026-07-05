@@ -433,10 +433,13 @@ def kontrol_blok_sayisi_siniri(okul: Okul) -> list[str]:
 def _bos_gun_icin_rezerve_edilecek_acik_dilim(okul: Okul, ogretmen: Ogretmen) -> int:
     """dışOkul kapanışı olmayan günler arasından açık dilimi en az olan günün açık dilim sayısını döndürür.
 
-    B3'ün garanti ettiği boş gün bu güne "biner": o günün zaten kapalı
-    dilimleri (varsa) toplam kapanış sayısına bir kez dahil edildiğinden,
-    burada yalnızca AÇIK (henüz kapanışsız) dilimler ek olarak rezerve
-    edilir -- aksi halde aynı kapanış iki kez düşülür (Görev A.2 hatası).
+    B3 "uygun günlerden herhangi biri boş olsun" dediğinden fizibilite
+    kontrolü en ucuz boş günü varsaymalı: garanti edilen boş gün,
+    kapanışı EN ÇOK (açık dilimi en az) olan uygun güne "biner". O günün
+    zaten kapalı dilimleri (varsa) toplam kapanış sayısına bir kez dahil
+    edildiğinden, burada yalnızca AÇIK (henüz kapanışsız) dilimler ek
+    olarak rezerve edilir -- aksi halde aynı kapanış iki kez düşülür
+    (Görev A.2 hatası).
     """
     gun_basi_kapanis: dict[int, int] = {}
     dis_okul_gunleri: set[int] = set()
@@ -456,10 +459,10 @@ def _bos_gun_icin_rezerve_edilecek_acik_dilim(okul: Okul, ogretmen: Ogretmen) ->
         # varsayıp tam bir günü rezerve ederek kapasiteyi düşük tahmin ederiz.
         return okul.izgara.dilim_sayisi
 
-    en_az_kapanisli_gunun_kapanisi = min(
+    en_cok_kapanisli_gunun_kapanisi = max(
         gun_basi_kapanis.get(g, 0) for g in uygun_gunler
     )
-    return okul.izgara.dilim_sayisi - en_az_kapanisli_gunun_kapanisi
+    return okul.izgara.dilim_sayisi - en_cok_kapanisli_gunun_kapanisi
 
 
 def _ogretmen_kapasitesi(okul: Okul, ogretmen: Ogretmen) -> int:
