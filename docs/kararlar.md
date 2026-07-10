@@ -202,3 +202,52 @@ Saha bulgusu (Karar 15'in açık alt sorusuna girdi): 12 öğretmenin
 2'sinde muafiyet fiilen mevcut durum; uyarı metni "istisnai anomali"
 değil "çok-okullu ağır yük profilinde bilinen durum" tonunda
 yazılmalı. Nihai ifade kullanıcının saha yorumuyla kesinleşecek.
+
+## 18. C-katmanı uygulama kararları: baskınlık ağırlığı, <= kilit,
+devirli süre bütçesi, çözüm anı ceza toplama (10 Tem 2026)
+
+Karar 5'in (iki katmanlı kademeli amaç) uygulamasını bağlayan dört
+karar; kod: kisitlar.py C-katmanı bölümü + coz.kademeli_coz + karne.py.
+
+a) **Katman içi öncelik baskınlık ağırlığıyla sağlanır.** Bir kuralın
+birim cezası, kendinden düşük öncelikli tüm kuralların ulaşabileceği
+ağırlıklı toplam cezadan büyük seçilir; üstteki kuralın 1 birim
+iyileşmesi alttakilerin hiçbir kombinasyonuyla takas edilemez.
+Ağırlıklar elle sabitlenmez, her koşuda terimlerin üst sınırlarından
+hesaplanır (okul büyüdükçe kendiliğinden ölçeklenir).
+Bilinçli feragat / izlenecek risk: alt katmanda 5 kural iç içe
+baskınlık gerektirdiğinden ağırlıklar hızla büyür (örnek okulda
+~5×10^10). int64 sınırının çok altında; ancak sentetik büyük okul
+deneyinde hem taşma payı hem çözüm hızına etkisi izlenecek.
+
+b) **Kilit <= kısıtıyla konur, == ile değil.** Geçiş 2'de üst katman
+ceza ifadesi "<=  Geçiş 1 değeri" kısıtına bağlanır: alt katman
+iyileştirilirken üst katmanın tesadüfen daha da iyileşmesi serbesttir;
+kötüleşmesi yapısal olarak imkânsızdır.
+
+c) **Süre bütçesi %60 üst / %40 alt, devirli.** Toplam bütçe
+(KuralAyarlari.sure_butcesi_saniye, varsayılan 60 sn) geçişlere
+ust_katman_sure_orani ile bölünür; Geçiş 1 payını erken bitirirse
+artan süre Geçiş 2'ye devreder. Geçiş 1 çözümü Geçiş 2'ye başlangıç
+ipucu (hint) olarak verilir: Geçiş 2 süre yetmese bile en kötü
+ihtimalle kilidi sağlayan hazır çözümle döner.
+
+d) **Cezalar çözüm anında, etiketli değişkenlerden toplanır.** Her
+ceza terimi modele kural+öğretmen+şube+gün etiketli değişken olarak
+girer; karne dökümü bu değişkenlerden okunur. Bunun ön koşulu olarak
+tüm ceza değişkenleri ÇİFT YÖNLÜ kanallıdır ("ceza=1 <=> ihlal var"):
+yalnız alt sınırla bağlanan bir değişken, Geçiş 2'nin <= kilidi
+altında gevşek kalıp fiili ihlalden büyük görünebilirdi. Bağımsız
+denetçi ayağı: karne.py cezaları yalnız Okul+Yerlesim'den yeniden
+hesaplar; kural bazında uyuşmazlık koşuyu geçersiz sayar (cozum_denetle
+ilkesinin C-katmanına genişletilmesi).
+
+Ek modelleme notları:
+- C3/C6 bilinçli üst üste binme: 3 saatlik pencerenin dilimleri C6'nın
+  dilim sayımına da girer (uzun pencere iki ölçekte de kötüdür);
+  katmanlar ayrı optimize edildiğinden takas sızdırmaz.
+- Rehberlik muafiyeti REHBERLIK_DIGER kategorisi üzerinden uygulanır
+  (C2/C5); DIL kategorisi C7'den tamamen muaftır (kisit-envanteri §4-C).
+- KuralAyarlari.kapali_kurallar kümesi bir C kuralını bütünüyle kapatır
+  (terim kurulmaz, karne "KAPALI" gösterir); B4'ün "gevşetilebilir
+  ayar" ilkesinin (kisit-envanteri) C-katmanındaki karşılığıdır.
