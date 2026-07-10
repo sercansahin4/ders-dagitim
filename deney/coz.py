@@ -1,11 +1,15 @@
 """İki katmanlı kademeli çözüm akışını yürütür.
 
-Modelin önce gevşetilmiş/kaba bir katmanda, ardından tam kısıt
-kümesiyle ikinci katmanda kademeli olarak çözüldüğü akışın
-yönetildiği modül.
-
-v0: amaç fonksiyonu yok (yalnızca fizibilite). Katmanlama Hafta 2'nin
-sonraki paketinde (C kuralları) eklenecek; bkz. docs/cevrim-tablosu.md §3.
+Akışlar:
+  - coz(okul): amaç fonksiyonsuz fizibilite çözümü. Tanılama bu modu
+    kullanır (tanilama.py); C-katmanı buraya bilerek eklenmez.
+  - kademeli_coz(okul): iki geçişli kademeli (lexicographic) çözüm
+    (kararlar.md Karar 5, kisit-envanteri.md §4-C). Geçiş 1 üst katman
+    cezasını (C1-C3) en aza indirir; değer <= kısıtıyla kilitlenir
+    (== değil: alt katman iyileştirilirken üst katmanın tesadüfen daha
+    da iyileşmesine izin verilir); Geçiş 2 kalan serbestlikte alt
+    katman cezasını (C4-C8) en aza indirir. Alt katman uğruna üst
+    katman yapısal olarak feda EDİLEMEZ.
 
 Ana akış çözücüden önce A-katmanı doğrulamasından geçer (A-kapısı):
 hata varsa varsayılan davranış durmak, --devam bayrağı bilinçli istisna.
@@ -13,12 +17,23 @@ hata varsa varsayılan davranış durmak, --devam bayrağı bilinçli istisna.
 
 from __future__ import annotations
 
+import time
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
 from ortools.sat.python import cp_model
 
-from kisitlar import KisitModeli, kur_temel_degiskenler, sert_kurallari_uygula
+from kisitlar import (
+    ALT_KATMAN_SIRASI,
+    UST_KATMAN_SIRASI,
+    CezaTerimi,
+    KisitModeli,
+    baskinlik_agirliklari,
+    kur_temel_degiskenler,
+    sert_kurallari_uygula,
+    yumusak_kurallari_kur,
+)
 from model import (
     KapanisNedeni,
     Okul,
@@ -53,6 +68,11 @@ def coz(okul: Okul) -> tuple[cp_model.CpSolver, KisitModeli, Optional[Yerlesim],
     if durum not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
         return cozucu, km, None, durum
 
+    return cozucu, km, _yerlesim_cikar(okul, km, cozucu), durum
+
+
+def _yerlesim_cikar(okul: Okul, km: KisitModeli, cozucu: cp_model.CpSolver) -> Yerlesim:
+    """Çözücünün 1'e sabitlediği basla anahtarlarından Yerlesim nesnesi kurar."""
     yerlesim = Yerlesim()
     for (a_idx, b_idx, g, s), degisken in km.basla.items():
         if cozucu.Value(degisken) == 1:
@@ -62,7 +82,129 @@ def coz(okul: Okul) -> tuple[cp_model.CpSolver, KisitModeli, Optional[Yerlesim],
                     ders_atamasi_index=a_idx, gun=g, baslangic_dilim=s, sure=uzunluk
                 )
             )
-    return cozucu, km, yerlesim, durum
+    return yerlesim
+
+
+@dataclass
+class KademeliSonuc:
+    """İki geçişli kademeli çözümün çıktısını ve çözüm anı toplanan ceza dökümünü tutar.
+
+    kural_cezalari: kural başına AĞIRLIKSIZ toplam ceza (karne dili);
+    ust/alt_katman_cezasi: katmanın AĞIRLIKLI amaç değeri (kilit dili).
+    gecis2_kullanildi=False ise Geçiş 2 süre bütçesinde çözüm üretemedi
+    ve tüm değerler Geçiş 1 çözümünden okundu (kabul sınırı -- üst
+    katman -- yine sağlanmıştır; yalnız alt katman iyileştirilmemiştir).
+    """
+
+    yerlesim: Optional[Yerlesim]
+    durum_ust: int
+    durum_alt: Optional[int] = None
+    ust_katman_cezasi: Optional[int] = None
+    alt_katman_cezasi: Optional[int] = None
+    kilit_degeri: Optional[int] = None
+    sure_ust: float = 0.0
+    sure_alt: float = 0.0
+    gecis2_kullanildi: bool = False
+    terimler: dict[str, list[CezaTerimi]] = field(default_factory=dict)
+    agirliklar: dict[str, int] = field(default_factory=dict)
+    kural_cezalari: dict[str, int] = field(default_factory=dict)
+
+
+def kademeli_coz(okul: Okul) -> KademeliSonuc:
+    """Modeli HIZLI modda kurar, sert kuralları ve C1-C8 ceza terimlerini ekler, iki geçişli kademeli çözümü çalıştırır.
+
+    Onaylı uygulama kararları: katman içi öncelik baskınlık ağırlığıyla
+    (kisitlar.baskinlik_agirliklari), kilit <= kısıtıyla, süre bütçesi
+    üst/alt geçişlere kural_ayarlari.ust_katman_sure_orani ile bölünür
+    (Geçiş 1 erken biterse artan süre Geçiş 2'ye devreder), cezalar
+    çözüm anında etiketli değişkenlerden toplanır.
+    """
+    km = kur_temel_degiskenler(okul)
+    sert_kurallari_uygula(km)
+    terimler = yumusak_kurallari_kur(km)
+
+    agirliklar_ust = baskinlik_agirliklari(UST_KATMAN_SIRASI, terimler)
+    agirliklar_alt = baskinlik_agirliklari(ALT_KATMAN_SIRASI, terimler)
+    agirliklar = {**agirliklar_ust, **agirliklar_alt}
+
+    ust_ifade = sum(
+        agirliklar_ust[kural] * t.katsayi * t.degisken
+        for kural in UST_KATMAN_SIRASI
+        for t in terimler[kural]
+    )
+    alt_ifade = sum(
+        agirliklar_alt[kural] * t.katsayi * t.degisken
+        for kural in ALT_KATMAN_SIRASI
+        for t in terimler[kural]
+    )
+
+    butce = okul.kural_ayarlari.sure_butcesi_saniye
+    oran = okul.kural_ayarlari.ust_katman_sure_orani
+
+    # Geçiş 1: üst katman.
+    cozucu_ust = cp_model.CpSolver()
+    cozucu_ust.parameters.max_time_in_seconds = butce * oran
+    km.model.Minimize(ust_ifade)
+    baslangic = time.monotonic()
+    durum_ust = cozucu_ust.Solve(km.model)
+    sure_ust = time.monotonic() - baslangic
+
+    if durum_ust not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+        return KademeliSonuc(yerlesim=None, durum_ust=durum_ust, sure_ust=sure_ust,
+                             terimler=terimler, agirliklar=agirliklar)
+
+    kilit_degeri = round(cozucu_ust.ObjectiveValue())
+
+    # Kilit (<=) + Geçiş 1 çözümü Geçiş 2'ye başlangıç ipucu olarak verilir
+    # (kilidi zaten sağlayan hazır bir çözüm: Geçiş 2 hiç değilse onunla başlar).
+    km.model.Add(ust_ifade <= kilit_degeri)
+    km.model.ClearHints()
+    for degisken in km.basla.values():
+        km.model.AddHint(degisken, cozucu_ust.Value(degisken))
+
+    # Geçiş 2: alt katman, kalan sürenin tamamıyla (devir kuralı).
+    cozucu_alt = cp_model.CpSolver()
+    cozucu_alt.parameters.max_time_in_seconds = max(butce - sure_ust, 1.0)
+    km.model.Minimize(alt_ifade)
+    baslangic = time.monotonic()
+    durum_alt = cozucu_alt.Solve(km.model)
+    sure_alt = time.monotonic() - baslangic
+
+    gecis2_kullanildi = durum_alt in (cp_model.OPTIMAL, cp_model.FEASIBLE)
+    nihai = cozucu_alt if gecis2_kullanildi else cozucu_ust
+
+    # Ceza dökümü çözüm anındaki etiketli değişkenlerden okunur. Tüm ceza
+    # değişkenleri çift yönlü kanallı olduğundan (bkz. kisitlar.py C-katmanı
+    # notu) hangi geçişten okunursa okunsun fiili ihlali gösterirler.
+    kural_cezalari = {
+        kural: sum(t.katsayi * nihai.Value(t.degisken) for t in kural_terimleri)
+        for kural, kural_terimleri in terimler.items()
+    }
+    ust_katman_cezasi = sum(
+        agirliklar_ust[k] * t.katsayi * nihai.Value(t.degisken)
+        for k in UST_KATMAN_SIRASI
+        for t in terimler[k]
+    )
+    alt_katman_cezasi = sum(
+        agirliklar_alt[k] * t.katsayi * nihai.Value(t.degisken)
+        for k in ALT_KATMAN_SIRASI
+        for t in terimler[k]
+    )
+
+    return KademeliSonuc(
+        yerlesim=_yerlesim_cikar(okul, km, nihai),
+        durum_ust=durum_ust,
+        durum_alt=durum_alt,
+        ust_katman_cezasi=ust_katman_cezasi,
+        alt_katman_cezasi=alt_katman_cezasi,
+        kilit_degeri=kilit_degeri,
+        sure_ust=sure_ust,
+        sure_alt=sure_alt,
+        gecis2_kullanildi=gecis2_kullanildi,
+        terimler=terimler,
+        agirliklar=agirliklar,
+        kural_cezalari=kural_cezalari,
+    )
 
 
 def sube_carsaf_metni(okul: Okul, yerlesim: Yerlesim) -> str:
@@ -233,6 +375,11 @@ if __name__ == "__main__":
         action="store_true",
         help="A-katmanı hataları olsa da çözücüyü (ve gerekirse tanılamayı) çalıştır.",
     )
+    parser.add_argument(
+        "--fizibilite",
+        action="store_true",
+        help="C-katmanını atlayıp yalnız amaç fonksiyonsuz fizibilite çözümü koş (eski davranış).",
+    )
     args = parser.parse_args()
     okul = okul_yukle(args.okul_dosyasi)
 
@@ -258,16 +405,38 @@ if __name__ == "__main__":
             sys.exit(1)
         print()
 
-    cozucu, km, yerlesim, durum = coz(okul)
+    if args.fizibilite:
+        cozucu, km, yerlesim, durum = coz(okul)
+        sonuc = None
+    else:
+        sonuc = kademeli_coz(okul)
+        yerlesim = sonuc.yerlesim
+        durum = sonuc.durum_ust
 
     if yerlesim is None and durum == cp_model.INFEASIBLE:
         from tanilama import tanila
 
         print(tanila(okul))
     elif yerlesim is None:
-        print(f"Çözüm bulunamadı (durum: {cozucu.StatusName(durum)}).")
+        print(
+            f"Çözüm bulunamadı (durum: "
+            f"{cp_model.CpSolver().StatusName(durum)})."
+        )
     else:
-        print(f"Çözüm bulundu: {len(yerlesim.girdiler)} blok yerleşti.\n")
+        print(f"Çözüm bulundu: {len(yerlesim.girdiler)} blok yerleşti.")
+        if sonuc is not None:
+            print(
+                f"Geçiş 1 (üst katman): {sonuc.sure_ust:.1f} sn, ağırlıklı ceza "
+                f"{sonuc.kilit_degeri} (kilit). Geçiş 2 (alt katman): "
+                f"{sonuc.sure_alt:.1f} sn, ağırlıklı ceza {sonuc.alt_katman_cezasi}."
+            )
+            if not sonuc.gecis2_kullanildi:
+                print(
+                    "UYARI: Geçiş 2 süre bütçesinde çözüm üretemedi; Geçiş 1 "
+                    "çözümü kullanıldı (üst katman yine sağlandı, alt katman "
+                    "iyileştirilmedi)."
+                )
+        print()
         print(sube_carsaf_metni(okul, yerlesim))
         print()
         print(ogretmen_program_metni(okul, yerlesim))
@@ -287,3 +456,40 @@ if __name__ == "__main__":
                 "boş gün var, kapanış ihlali yok, gün/blok ve HDS toplamları "
                 "tutarlı."
             )
+
+        if sonuc is not None:
+            from karne import cezalari_hesapla, karne_metni, kural_toplamlari, mutabakat
+
+            dokum = cezalari_hesapla(okul, yerlesim)
+            print()
+            print(
+                karne_metni(
+                    okul,
+                    dokum,
+                    ust_katman_cezasi=sonuc.ust_katman_cezasi,
+                    alt_katman_cezasi=sonuc.alt_katman_cezasi,
+                )
+            )
+
+            print("\n=== C-katmanı mutabakat (çözüm anı <-> bağımsız hesap) ===")
+            uyusmazliklar = mutabakat(sonuc.kural_cezalari, kural_toplamlari(dokum))
+            kilit_ihlali = (
+                sonuc.ust_katman_cezasi is not None
+                and sonuc.kilit_degeri is not None
+                and sonuc.ust_katman_cezasi > sonuc.kilit_degeri
+            )
+            if kilit_ihlali:
+                uyusmazliklar.append(
+                    f"KİLİT İHLALİ: nihai çözümün üst katman cezası "
+                    f"({sonuc.ust_katman_cezasi}) Geçiş 1 kilidini "
+                    f"({sonuc.kilit_degeri}) aşıyor."
+                )
+            if uyusmazliklar:
+                for u in uyusmazliklar:
+                    print(f"  - {u}")
+                print("KOŞU GEÇERSİZ: yukarıdaki uyuşmazlıklar giderilmeden sonuç kullanılamaz.")
+            else:
+                print(
+                    "Mutabık: kural bazında çözüm anı cezaları bağımsız hesapla "
+                    "birebir örtüşüyor; üst katman kilidi korunmuş."
+                )
