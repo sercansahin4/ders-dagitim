@@ -108,6 +108,15 @@ class KuralAyarlari:
     sanat_spor_dilim_cezasi: list[int] = field(
         default_factory=lambda: [4, 3, 2, 1, 0, 0, 0, 0]
     )
+    # Kademeli çözümün (iki geçişli, kisit-envanteri §4-C) süre bütçesi:
+    # toplam saniye ile üst katman geçişine ayrılan oran. Geçiş 1 payını
+    # erken bitirirse artan süre Geçiş 2'ye devreder (coz.kademeli_coz).
+    sure_butcesi_saniye: float = 60.0
+    ust_katman_sure_orani: float = 0.6
+    # Bu kümede adı geçen C kuralları (örn. {"C7"}) hiç kurulmaz: ceza
+    # değişkeni yaratılmaz, katman toplamına ve baskınlık ağırlığı
+    # hesabına girmez. Varsayılan boş: tüm C kuralları açık.
+    kapali_kurallar: set[str] = field(default_factory=set)
 
 
 @dataclass
@@ -260,6 +269,9 @@ def _kural_ayarlari_to_dict(kural: KuralAyarlari) -> dict:
         "b3_muaf_ogretmenler": sorted(kural.b3_muaf_ogretmenler),
         "sayisal_dilim_cezasi": list(kural.sayisal_dilim_cezasi),
         "sanat_spor_dilim_cezasi": list(kural.sanat_spor_dilim_cezasi),
+        "sure_butcesi_saniye": kural.sure_butcesi_saniye,
+        "ust_katman_sure_orani": kural.ust_katman_sure_orani,
+        "kapali_kurallar": sorted(kural.kapali_kurallar),
     }
 
 
@@ -282,6 +294,13 @@ def _kural_ayarlari_from_dict(veri: dict) -> KuralAyarlari:
         sanat_spor_dilim_cezasi=list(
             veri.get("sanat_spor_dilim_cezasi", varsayilan.sanat_spor_dilim_cezasi)
         ),
+        sure_butcesi_saniye=veri.get(
+            "sure_butcesi_saniye", varsayilan.sure_butcesi_saniye
+        ),
+        ust_katman_sure_orani=veri.get(
+            "ust_katman_sure_orani", varsayilan.ust_katman_sure_orani
+        ),
+        kapali_kurallar=set(veri.get("kapali_kurallar", [])),
     )
 
 
