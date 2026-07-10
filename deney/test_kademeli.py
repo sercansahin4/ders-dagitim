@@ -94,6 +94,42 @@ class MikroOkulDuyarlilikTesti(unittest.TestCase):
         self.assertEqual(mutabakat(sonuc.kural_cezalari, bagimsiz), [])
 
 
+class C5DuyarlilikTesti(unittest.TestCase):
+    """C5 ardışıklık sınırının bağlayıcılığını 3 dilimlik ızgara kurgusuyla doğrular (§6-4'ün ikinci tek-parametre oynatma testi).
+
+    Kurgu: mikro okulun ızgarası günde 3 dilime daraltılır. B3 bir günü
+    boşaltır, C2 (sınır 3) günlük 3 saate izin verir; 11 saat 4 güne
+    ancak 3+3+3+2 dağılır -- en az üç günde 3 dilimin ÜÇÜ de dolu.
+    Bloklar 1 saatlik olduğundan blok muafiyeti devreye giremez:
+    ardisiklik_siniri=2'de (pencere boyu 3) tam 3 zincir cezası
+    KAÇINILMAZDIR; sınır 3'te pencere boyu (4) ızgaraya sığmadığından
+    ceza yapısal olarak 0'a düşer. Karşılaştırma AĞIRLIKSIZ kural
+    cezası üzerinden yapılır: baskınlık ağırlıkları terim sayısından
+    türetildiği için sınırla birlikte değişir, ağırlıklı katman
+    değerleri iki koşu arasında ölçek olarak karşılaştırılamaz.
+    """
+
+    @staticmethod
+    def _dar_izgara_okulu() -> Okul:
+        okul = _mikro_okul()
+        okul.izgara.dilim_sayisi = 3
+        return okul
+
+    def test_sinir_2_iken_c5_tam_uc(self):
+        okul = self._dar_izgara_okulu()
+        okul.kural_ayarlari.ardisiklik_siniri = 2
+        sonuc = kademeli_coz(okul)
+        self.assertIn(sonuc.durum_alt, (cp_model.OPTIMAL, cp_model.FEASIBLE))
+        self.assertEqual(sonuc.kural_cezalari["C5"], 3)
+
+    def test_sinir_3_iken_c5_sifir(self):
+        okul = self._dar_izgara_okulu()
+        okul.kural_ayarlari.ardisiklik_siniri = 3
+        sonuc = kademeli_coz(okul)
+        self.assertIn(sonuc.durum_alt, (cp_model.OPTIMAL, cp_model.FEASIBLE))
+        self.assertEqual(sonuc.kural_cezalari["C5"], 0)
+
+
 class KapaliKuralTesti(unittest.TestCase):
     """kapali_kurallar kümesinin kurucu, karne ve mutabakat üçlüsünde tutarlı işlediğini doğrular."""
 
