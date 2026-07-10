@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>ders-dagitim — tarayıcı wasm thread testi</title>
+<style>
+  body { font-family: -apple-system, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+  .tani { background: #f4f4f0; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
+  .tani b.evet { color: #0a7a4a; } .tani b.hayir { color: #b3261e; }
+  button { font-size: 15px; padding: 8px 14px; margin-right: 8px; cursor: pointer; }
+  #kayit { white-space: pre-wrap; font-family: ui-monospace, monospace; font-size: 13px;
+           background: #1e1e1e; color: #d6d6d6; border-radius: 8px; padding: 1rem; min-height: 6rem; }
+</style>
+</head>
+<body>
+<h1>Tarayıcı wasm thread testi</h1>
+<p>Bu sayfa, Karar 20'nin açık şartını (a) ölçer: CP-SAT wasm çözücüsü bu
+tarayıcıda iş parçacıklarını kullanabiliyor mu ve 43 şubelik sentetik okulu
+kaç saniyede çözüyor?</p>
+
+<div class="tani" id="tani">Tanılama yükleniyor…</div>
+
+<p>
+  <button id="btn-assump">1) Assumptions testi (hızlı)</button>
+  <button id="btn-tek">2) 43 şube — tek işçi</button>
+  <button id="btn-cok">3) 43 şube — çok işçi</button>
+</p>
+
+<div id="kayit">Hazır. Testleri sırayla çalıştır; her koşunun sonucunu buraya yazar.
+Sonuçların tamamını kopyalayıp Claude'a yapıştırman yeterli.</div>
+
+<script type="module">
+import { CpSat } from './node_modules/or-tools-wasm/build/javascript/browser/cp-sat.js';
+
+const kayit = document.getElementById('kayit');
+const yaz = (m) => { kayit.textContent += '\n' + m; console.log(m); };
+
+const tani = document.getElementById('tani');
+const izole = window.crossOriginIsolated === true;
+const sab = typeof SharedArrayBuffer !== 'undefined';
+tani.innerHTML =
+  `crossOriginIsolated: <b class="${izole ? 'evet' : 'hayir'}">${izole}</b> · ` +
+  `SharedArrayBuffer: <b class="${sab ? 'evet' : 'hayir'}">${sab}</b> · ` +
+  `çekirdek (hardwareConcurrency): <b>${navigator.hardwareConcurrency}</b>` +
+  (izole ? '' : '<br><b class="hayir">UYARI:</b> izolasyon kapalı — sayfayı sunucu.py üzerinden açtığından emin ol; thread testi bu durumda anlamsızdır.');
+
+async function bayt(yol) {
+  const r = await fetch(yol);
+  if (!r.ok) throw new Error(yol + ' yüklenemedi (' + r.status + ') — model_uret.py çalıştırıldı mı?');
+  return new Uint8Array(await r.arrayBuffer());
+}
+
+async function coz(etiket, dosya, params) {
+  yaz(`\n[${etiket}] başladı… (parametreler: ${JSON.stringify(params)})`);
+  try {
+    const model = await bayt(dosya);
+    const t0 = performance.now();
+    const res = await CpSat.solve(model, params);
+    const sn = ((performance.now() - t0) / 1000).toFixed(1);
+    const r = res.response;
+    yaz(`[${etiket}] durum: ${r?.status} · süre: ${sn} sn` +
+        (r?.sufficientAssumptionsForInfeasibility?.length
+          ? ` · unsat core boyutu: ${r.sufficientAssumptionsForInfeasibility.length}` : ''));
+  } catch (e) {
+    yaz(`[${etiket}] HATA: ${e.message}`);
+  }
+}
+
+document.getElementById('btn-assump').onclick = () =>
+  coz('assumptions', './deniz_tanilama.pb', { maxTimeInSeconds: 30 });
+document.getElementById('btn-tek').onclick = () =>
+  coz('43şube-tek', './s43_fizibilite.pb', { maxTimeInSeconds: 120, numSearchWorkers: 1 });
+document.getElementById('btn-cok').onclick = () =>
+  coz('43şube-çok', './s43_fizibilite.pb', { maxTimeInSeconds: 120, numSearchWorkers: navigator.hardwareConcurrency || 8 });
+</script>
+</body>
+</html>

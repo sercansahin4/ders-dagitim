@@ -1,0 +1,8 @@
+{
+  "name": "ders-dagitim-tarayici-testi",
+  "private": true,
+  "description": "wasm thread testi için yerel bağımlılık (bkz. README.md)",
+  "dependencies": {
+    "or-tools-wasm": "0.9.1"
+  }
+}

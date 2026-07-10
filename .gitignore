@@ -81,3 +81,8 @@ dmypy.json
 # Proje ozel
 veri-ham/
 okul_anonim*
+
+# Tarayıcı testi (deney/tarayici-testi): yerel bağımlılık ve üretilen modeller
+node_modules/
+*.pb
+package-lock.json
