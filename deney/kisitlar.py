@@ -62,6 +62,12 @@ class KisitModeli:
     tanilama_modu: bool = False
     # basla[a_idx, b_idx, g, s] -- yalnızca geçerli konumlar için anahtar var.
     basla: dict[tuple[int, int, int, int], cp_model.IntVar] = field(default_factory=dict)
+    # (a_idx, g) -> [(b_idx, s0, var)] -- basla'nın gün indeksli görünümü.
+    # Gerekçe: dolu kurulumu ile C5/C7 köprü aramaları büyük okulda tüm
+    # basla sözlüğünü taramamalı (43 şubede kurulum dakikalara çıkıyordu).
+    basla_gun_indeksi: dict[tuple[int, int], list[tuple[int, int, cp_model.IntVar]]] = field(
+        default_factory=dict
+    )
     # dolu[a_idx, g, s]
     dolu: dict[tuple[int, int, int], cp_model.IntVar] = field(default_factory=dict)
     # calisiyor[ogretmen_adi, g, s]
@@ -203,9 +209,7 @@ def b4_ayri_gune_dagilim(km: KisitModeli) -> None:
         )
         for g in km.gunler:
             anahtarlar = [
-                km.basla[(a_idx, b_idx, gg, s)]
-                for (a_idx2, b_idx, gg, s) in km.basla
-                if a_idx2 == a_idx and gg == g
+                var for (_b_idx, _s, var) in km.basla_gun_indeksi.get((a_idx, g), [])
             ]
             if anahtarlar:
                 kisit = km.model.Add(sum(anahtarlar) <= 1)
@@ -358,9 +362,9 @@ def kur_temel_degiskenler(okul: Okul, tanilama_modu: bool = False) -> KisitModel
                 )
             blok_gecerlileri.append(gecerli)
             for (g, s) in gecerli:
-                km.basla[(a_idx, b_idx, g, s)] = model.NewBoolVar(
-                    f"basla_a{a_idx}_b{b_idx}_g{g}_s{s}"
-                )
+                var = model.NewBoolVar(f"basla_a{a_idx}_b{b_idx}_g{g}_s{s}")
+                km.basla[(a_idx, b_idx, g, s)] = var
+                km.basla_gun_indeksi.setdefault((a_idx, g), []).append((b_idx, s, var))
             model.AddExactlyOne(km.basla[(a_idx, b_idx, g, s)] for (g, s) in gecerli)
 
         # Simetri kırma: aynı uzunluktaki ardışık bloklar için gün sırası
@@ -379,16 +383,17 @@ def kur_temel_degiskenler(okul: Okul, tanilama_modu: bool = False) -> KisitModel
     # dolu[a,g,s] -- bloğun kapladığı dilimlere basla'nın yayılımı
     # (B4 sayesinde eşitlik olarak bağlanır: aynı güne en fazla bir blok
     # başlayacağından kapsayan basla'ların toplamı zaten 0/1'dir).
-    for a_idx, atama in enumerate(okul.ders_atamalari):
+    # Kapsama haritası basla üzerinden TEK geçişte kurulur (gün indeksi
+    # notuna bakınız: (a,g,s) başına tam tarama ölçeklenmiyordu).
+    kapsayan_haritasi: dict[tuple[int, int, int], list[cp_model.IntVar]] = {}
+    for (a_idx, b_idx, g, s0), var in km.basla.items():
+        uzunluk = okul.ders_atamalari[a_idx].blok_deseni[b_idx]
+        for s in range(s0, s0 + uzunluk):
+            kapsayan_haritasi.setdefault((a_idx, g, s), []).append(var)
+    for a_idx in range(len(okul.ders_atamalari)):
         for g in gunler:
             for s in dilimler:
-                kapsayanlar = [
-                    var
-                    for (a_idx2, b_idx, gg, s0), var in km.basla.items()
-                    if a_idx2 == a_idx
-                    and gg == g
-                    and s0 <= s <= s0 + atama.blok_deseni[b_idx] - 1
-                ]
+                kapsayanlar = kapsayan_haritasi.get((a_idx, g, s))
                 dolu_var = model.NewBoolVar(f"dolu_a{a_idx}_g{g}_s{s}")
                 if kapsayanlar:
                     model.Add(dolu_var == sum(kapsayanlar))
@@ -666,10 +671,9 @@ def c5_ardisiklik_siniri(km: KisitModeli) -> list[CezaTerimi]:
 
                 kapsayanlar = [
                     var
-                    for (a_idx, b_idx, gg, s0), var in km.basla.items()
-                    if a_idx in atama_indeksleri
-                    and gg == g
-                    and s0 <= s
+                    for a_idx in atama_indeksleri
+                    for (b_idx, s0, var) in km.basla_gun_indeksi.get((a_idx, g), [])
+                    if s0 <= s
                     and s0 + km.okul.ders_atamalari[a_idx].blok_deseni[b_idx] - 1
                     >= s + pencere_boyu - 1
                 ]
@@ -752,10 +756,9 @@ def c7_kategori_ardisikligi(km: KisitModeli) -> list[CezaTerimi]:
 
                     kapsayanlar = [
                         var
-                        for (a_idx, b_idx, gg, s0), var in km.basla.items()
-                        if a_idx in ilgili
-                        and gg == g
-                        and s0 <= s
+                        for a_idx in ilgili
+                        for (b_idx, s0, var) in km.basla_gun_indeksi.get((a_idx, g), [])
+                        if s0 <= s
                         and s0 + km.okul.ders_atamalari[a_idx].blok_deseni[b_idx] - 1
                         >= s + 1
                     ]
