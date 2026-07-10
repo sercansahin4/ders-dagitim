@@ -49,6 +49,11 @@ _NEDEN_KULLANICI_METNI = {
 _MAKS_ADAY_ATAMA_BASINA_DESEN = 2
 _MAKS_ADAY_ATAMA_BASINA_YUK_DEVRI = 2
 _MAKS_TOPLAM_DENEME = 12
+# Kural muafiyeti (basamak 5) ve idari (basamak 6) adaylarının kendi ek
+# bütçeleri vardır: 12'lik ana bütçe basamak 1-4'te tükenebilir ve bu
+# iki basamağın aç kalması tam da çözümün oralarda olduğu vakalarda
+# (Deniz vakası, Karar 15) raporu eyleme dönük olmaktan çıkarır.
+_MAKS_EK_DENEME_MUAFIYET = 4
 _MAKS_EK_DENEME_IDARI = 3
 
 
@@ -477,57 +482,86 @@ def _kisisel_tercih_adaylari(
     return adaylar
 
 
-def _kural_muafiyeti_adaylari(okul: Okul, b3_ogretmenler: list[str]) -> list[OneriAdayi]:
-    """Basamak 5 (Karar 15): B3 core'unda görünen öğretmen için boş gün garantisinin O ÖĞRETMENE ÖZEL kapatılması adayını üretir.
-
-    Kural parametreleri de meşru gevşetme adaylarıdır (Karar 15
-    gerekçesi): dış okul yükü boş günü yapısal olarak imkânsız kılan
-    öğretmende hiçbir veri değişikliği (desen, yük devri, kapanış)
-    çözüm açamaz -- tek dürüst öneri kuralın o öğetmen için, kayıt
-    altına alınarak kapatılmasıdır. Uyarı tonu Karar 17 saha bulgusuna
-    göre yazılmıştır: bu, istisnai bir anomali değil, çok-okullu ağır
-    yük profilinde bilinen bir durumdur. Aday, diğer tüm adaylar gibi
-    yeniden-çöz doğrulamasından geçer; muafiyet A-katmanı kapasite
-    hesabına da işlediğinden (Karar 17) doğrulama tutarlıdır.
-    """
-    adaylar: list[OneriAdayi] = []
-    for ogretmen_adi in b3_ogretmenler:
-        if ogretmen_adi in okul.kural_ayarlari.b3_muaf_ogretmenler:
-            continue
-        ogretmen = next(o for o in okul.ogretmenler if o.ad == ogretmen_adi)
-        dis_okul_gunleri = sorted(
+def _muafiyet_metni(okul: Okul, adlar: list[str]) -> str:
+    """Basamak 5 öneri cümlesini kurar (tekil ya da birleşik; Karar 17 tonunda: 'bilinen durum', anomali değil)."""
+    dis_okullu = []
+    for ad in adlar:
+        ogretmen = next(o for o in okul.ogretmenler if o.ad == ad)
+        gunler = sorted(
             {k.gun for k in ogretmen.kapanislar if k.neden == KapanisNedeni.DIS_OKUL}
         )
-        yeni_okul = deepcopy(okul)
-        yeni_okul.kural_ayarlari.b3_muaf_ogretmenler = set(
-            yeni_okul.kural_ayarlari.b3_muaf_ogretmenler
-        ) | {ogretmen_adi}
-
-        if dis_okul_gunleri:
-            gerekce = (
-                f"{_gunleri_metne_cevir(dis_okul_gunleri)} günleri dış okul "
-                f"görevinde olduğundan bu okulda tam boş gün bırakmak yapısal "
-                f"olarak mümkün görünmüyor; bu, çok okullu ağır yük profilinde "
-                f"bilinen bir durumdur"
-            )
-        else:
-            gerekce = (
-                "mevcut ders yükü dağılımıyla hiçbir gün tamamen "
-                "boşaltılamıyor"
-            )
-        adaylar.append(
-            OneriAdayi(
-                basamak=5,
-                aciklama=(
-                    f"{ogretmen_adi} öğretmeni için boş gün garantisi kuralını "
-                    f"bu öğretmene özel kapatmayı değerlendirin: {gerekce} "
-                    f"(kural ayarlarına kayıt düşülerek uygulanır, diğer "
-                    f"öğretmenlerin garantisi etkilenmez)"
-                ),
-                okul=yeni_okul,
+        if gunler:
+            dis_okullu.append(f"{ad} ({_gunleri_metne_cevir(gunler)} dış okulda)")
+    if len(adlar) == 1:
+        kisi = f"{adlar[0]} öğretmeni için"
+        gerekce = (
+            f"{dis_okullu[0].split('(')[1].rstrip(')')} olduğundan bu okulda tam "
+            f"boş gün bırakmak yapısal olarak mümkün görünmüyor"
+            if dis_okullu
+            else "mevcut ders yükü dağılımıyla hiçbir gün tamamen boşaltılamıyor"
+        )
+    else:
+        kisi = f"{' ve '.join(adlar)} öğretmenleri için birlikte"
+        gerekce = (
+            "dış okul yükleri nedeniyle bu okulda tam boş gün bırakmak yapısal "
+            "olarak mümkün görünmüyor" + (
+                f" ({'; '.join(dis_okullu)})" if dis_okullu else ""
             )
         )
-    return adaylar
+    return (
+        f"Boş gün garantisi kuralını {kisi} kapatmayı değerlendirin: {gerekce}; "
+        f"bu, çok okullu ağır yük profilinde bilinen bir durumdur (kural "
+        f"ayarlarına kayıt düşülerek uygulanır, diğer öğretmenlerin garantisi "
+        f"etkilenmez)"
+    )
+
+
+def _muafiyet_onerisi_uret(okul: Okul, b3_ogretmenler: list[str]) -> tuple[str | None, int]:
+    """Basamak 5 (Karar 15 + Karar 21): B3 muafiyetini SINIRLI YİNELEMELİ teşhisle önerir.
+
+    Unsat core minimaldir: birden çok öğretmenin B3'ü aynı anda
+    imkânsızken core yalnız BİRİNİ gösterebilir (çözümsüzlüğü kanıtlamaya
+    o yeter). Tekil muafiyet bu yüzden doğrulamadan geçemez ve saf
+    aday-listesi yaklaşımı 'hiçbir aday çözüm açmadı' ile kapanırdı.
+    Döngü: muafiyet kümesini hipotetik uygula -> çözülmüyorsa AYNI
+    hipotetik okulu yeniden teşhis et -> core'un gösterdiği yeni B3
+    öğretmenlerini kümeye ekle -> yeniden dene. Tavan:
+    _MAKS_EK_DENEME_MUAFIYET tur. Yalnız doğrulanan küme raporlanır.
+
+    Dönüş: (onaylanmış öneri cümlesi ya da None, yapılan deneme sayısı).
+    """
+    muafiyet_kumesi: set[str] = set()
+    kalan = sorted(
+        set(b3_ogretmenler) - set(okul.kural_ayarlari.b3_muaf_ogretmenler)
+    )
+    deneme = 0
+    while kalan and deneme < _MAKS_EK_DENEME_MUAFIYET:
+        muafiyet_kumesi |= set(kalan)
+        aday_okul = deepcopy(okul)
+        aday_okul.kural_ayarlari.b3_muaf_ogretmenler = set(
+            aday_okul.kural_ayarlari.b3_muaf_ogretmenler
+        ) | muafiyet_kumesi
+        deneme += 1
+        durum = _hizli_modda_cozulebilir_mi(aday_okul)
+        if durum == "cozuluyor":
+            return (
+                _muafiyet_metni(okul, sorted(muafiyet_kumesi))
+                + " (denendi: program kurulabiliyor).",
+                deneme,
+            )
+        if durum == "belirsiz":
+            # Süre yetmedi: okul UNSAT olmayabilir; UNSAT varsayan
+            # yeniden-teşhis adımı burada anlamsızdır, dürüstçe durulur.
+            return None, deneme
+        # Çözüm açılmadı (kanıtlı UNSAT): hipotetik okulu yeniden teşhis
+        # et; core'da yeni görünen B3 öğretmenleri sonraki turun adayıdır.
+        _cozucu, _model, yeni_cekirdek = tanilama_modunda_coz(aday_okul)
+        kalan = sorted(
+            {va.ogretmen_adi for va in yeni_cekirdek if va.tur == "B3"}
+            - muafiyet_kumesi
+            - set(okul.kural_ayarlari.b3_muaf_ogretmenler)
+        )
+    return None, deneme
 
 
 def _idari_adaylari(
@@ -561,25 +595,39 @@ def _idari_adaylari(
     return adaylar
 
 
-def _hizli_modda_cozulebilir_mi(okul: Okul) -> bool:
+def _hizli_modda_cozulebilir_mi(okul: Okul) -> str:
     """Bir okulun hipotetik durumunun HIZLI modda çözülüp çözülemediğini denetler (doğrulama döngüsünün çekirdeği).
 
     Hem A-katmanı (veri tutarlılığı: örn. B5 rehberlik ataması) hem de
     CP-SAT sert kuralları kontrol edilir -- A-katmanı CP-SAT'a hiç
     gitmediğinden, yalnız çözücüyü çalıştırmak B5 gibi bir ihlali
     kaçırabilir ve bir adayı yanlışlıkla "çözülüyor" sayabilir.
+
+    Dönüş ÜÇ durumludur: "cozuluyor" | "cozulmuyor" | "belirsiz".
+    "belirsiz" (süre tavanına takıldı, UNKNOWN) "cozulmuyor" ile AYNI
+    ŞEY DEĞİLDİR: gerçek okul verisinde geçerli bir muafiyet adayı,
+    sırf doğrulama süresi yetmediği için sessizce elenmişti. Çağıranlar
+    yalnız "cozuluyor"u onay sayar; "belirsiz"de yinelemeli teşhis gibi
+    UNSAT varsayan adımlar atlanmalıdır. Süre tavanı problem bütçesiyle
+    ölçeklenir (sure_butcesi_saniye / 3, en az 10 sn).
     """
     if a_katmani_dogrulama(okul):
-        return False
+        return "cozulmuyor"
     try:
         km = kur_temel_degiskenler(okul, tanilama_modu=False)
     except ValueError:
-        return False
+        return "cozulmuyor"
     sert_kurallari_uygula(km)
     cozucu = cp_model.CpSolver()
-    cozucu.parameters.max_time_in_seconds = 10
+    cozucu.parameters.max_time_in_seconds = max(
+        10.0, okul.kural_ayarlari.sure_butcesi_saniye / 3
+    )
     durum = cozucu.Solve(km.model)
-    return durum in (cp_model.OPTIMAL, cp_model.FEASIBLE)
+    if durum in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+        return "cozuluyor"
+    if durum == cp_model.INFEASIBLE:
+        return "cozulmuyor"
+    return "belirsiz"
 
 
 def dogrulanmis_oneriler_uret(
@@ -609,7 +657,6 @@ def dogrulanmis_oneriler_uret(
         _yuk_devri_adaylari(okul, core_atama_indeksleri_sirali),
         _sabitleme_adaylari(okul, core_atama_indeksleri_sirali),
         _kisisel_tercih_adaylari(okul, kapanis_gruplari),
-        _kural_muafiyeti_adaylari(okul, b3_ogretmenler),
     ]
 
     onaylanmis: list[str] = []
@@ -622,15 +669,23 @@ def dogrulanmis_oneriler_uret(
             if deneme_sayisi >= _MAKS_TOPLAM_DENEME:
                 break
             deneme_sayisi += 1
-            if _hizli_modda_cozulebilir_mi(aday.okul):
+            if _hizli_modda_cozulebilir_mi(aday.okul) == "cozuluyor":
                 onaylanmis.append(f"{aday.aciklama} (denendi: program kurulabiliyor).")
+
+    # Basamak 5 -- kural muafiyeti: kendi ek bütçesiyle, sınırlı
+    # yinelemeli teşhisle koşar (ana bütçe basamak 1-4'te tükenmiş
+    # olsa bile). Ayrıntı: _muafiyet_onerisi_uret docstring'i.
+    muafiyet_onerisi, muafiyet_denemesi = _muafiyet_onerisi_uret(okul, b3_ogretmenler)
+    deneme_sayisi += muafiyet_denemesi
+    if muafiyet_onerisi is not None:
+        onaylanmis.append(muafiyet_onerisi)
 
     en_az_kotu_yol: str | None = None
     if not onaylanmis:
         idari_adaylari = _idari_adaylari(okul, kapanis_gruplari)
         for aday in idari_adaylari[:_MAKS_EK_DENEME_IDARI]:
             deneme_sayisi += 1
-            if _hizli_modda_cozulebilir_mi(aday.okul):
+            if _hizli_modda_cozulebilir_mi(aday.okul) == "cozuluyor":
                 onaylanmis.append(f"{aday.aciklama} (denendi: program kurulabiliyor).")
             elif en_az_kotu_yol is None:
                 en_az_kotu_yol = aday.aciklama

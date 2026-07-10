@@ -289,3 +289,22 @@ yaşıyor.
 
 Bilinçli feragat: karar sunucu sınıfı CPU'da ölçülen sürelere
 dayanıyor; okul donanımı payı wasm duman testinde ayrıca ölçülecek.
+
+## 21. Muafiyet basamağında sınırlı yinelemeli teşhis (10 Tem 2026)
+
+Karar 14'ün kapsam sınırı ("yalnız üretilen adaylar denenir, arama
+yapılmaz") kural-muafiyeti basamağı (Karar 15) için SINIRLI biçimde
+genişletildi: muafiyet kümesi hipotetik uygulanır; çözüm açılmazsa
+aynı hipotetik okul yeniden teşhis edilir ve core'un yeni gösterdiği
+B3 öğretmenleri kümeye eklenerek yeniden denenir (tavan 4 tur).
+
+Gerekçe: unsat core MİNİMALDİR -- birden çok öğretmenin B3'ü aynı
+anda imkânsızken core yalnız birini gösterebilir (çözümsüzlüğü
+kanıtlamaya o yeter). Tekil muafiyet adayı bu yüzden doğrulamadan
+geçemez ve motor 'hiçbir aday çözüm açmadı' ile kapanırdı; oysa kendi
+okulumuzda muafiyet iki öğretmende BİRLİKTE gerekiyordu (Karar 17).
+İki-öğretmenli uydurma ikiz vaka test_tanilama.py'de kalıcı testtir.
+
+Kapsam sınırı korunur: yineleme yalnız muafiyet basamağında ve tavanlı;
+diğer basamaklarda aday-listesi yaklaşımı değişmedi. Genel karşı-olgusal
+arama hâlâ İleride #7'dir.

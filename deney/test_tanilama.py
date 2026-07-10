@@ -82,8 +82,8 @@ class DenizVakasiTesti(unittest.TestCase):
     def test_muafiyet_onerisi_dogrulanmis_olarak_raporda(self):
         """Rapor, B3 muafiyetini 'denendi: program kurulabiliyor' etiketiyle önermeli; Karar 17 tonunda gerekçe içermeli."""
         rapor = tanila(_deniz_okulu())
-        self.assertIn("boş gün garantisi kuralını", rapor)
-        self.assertIn("bu öğretmene özel kapatmayı", rapor)
+        self.assertIn("Boş gün garantisi kuralını", rapor)
+        self.assertIn("Uydurma Deniz öğretmeni için", rapor)
         self.assertIn("denendi: program kurulabiliyor", rapor)
         self.assertIn("bilinen bir durumdur", rapor)
         self.assertNotIn("Üretilen hiçbir aday çözüm açmadı", rapor)
@@ -97,12 +97,80 @@ class DenizVakasiTesti(unittest.TestCase):
         self.assertIn(durum, (cp_model.OPTIMAL, cp_model.FEASIBLE))
 
     def test_zaten_muaf_ogretmene_oneri_uretilmez(self):
-        """Muafiyeti zaten açık öğretmen için mükerrer muafiyet adayı üretilmemeli."""
-        from tanilama import _kural_muafiyeti_adaylari
+        """Muafiyeti zaten açık öğretmen yinelemeli döngüde aday sayılmamalı (mükerrer öneri yok, sıfır deneme)."""
+        from tanilama import _muafiyet_onerisi_uret
 
         okul = _deniz_okulu()
         okul.kural_ayarlari.b3_muaf_ogretmenler = {"Uydurma Deniz"}
-        self.assertEqual(_kural_muafiyeti_adaylari(okul, ["Uydurma Deniz"]), [])
+        oneri, deneme = _muafiyet_onerisi_uret(okul, ["Uydurma Deniz"])
+        self.assertIsNone(oneri)
+        self.assertEqual(deneme, 0)
+
+
+def _cift_deniz_okulu() -> Okul:
+    """İKİ öğretmenin de B3'ünün yapısal olarak imkânsız olduğu kurgu (gerçek okul vakasının uydurma ikizi: Karar 17'deki iki öğretmen).
+
+    Tekil muafiyet yetmez (diğerinin B3'ü hâlâ imkânsız); çözümsüzlük
+    ancak ikisi birlikte muaf tutulunca kalkar -- birleşik adayın testi.
+    """
+    dis_okul = [
+        Kapanis(gun=g, dilimler=TUM_DILIMLER, neden=KapanisNedeni.DIS_OKUL)
+        for g in (1, 2, 3, 4)
+    ]
+    return Okul(
+        izgara=Izgara(),
+        dersler=[
+            Ders("Matematik", DersKategorisi.SAYISAL),
+            Ders("Fizik", DersKategorisi.SAYISAL),
+            Ders("Rehberlik", DersKategorisi.REHBERLIK_DIGER),
+        ],
+        ogretmenler=[
+            Ogretmen(
+                ad="Uydurma Deniz",
+                verebilecegi_dersler=["Matematik"],
+                kapanislar=list(dis_okul),
+            ),
+            Ogretmen(
+                ad="Uydurma Derin",
+                verebilecegi_dersler=["Fizik"],
+                kapanislar=list(dis_okul),
+            ),
+            Ogretmen(ad="Uydurma Rehber", verebilecegi_dersler=["Rehberlik"]),
+        ],
+        subeler=[Sube(ad="9A", sinif_rehber_ogretmeni="Uydurma Rehber")],
+        ders_atamalari=[
+            DersAtamasi("Matematik", 2, [2], ["9A"], ["Uydurma Deniz"]),
+            DersAtamasi("Fizik", 2, [2], ["9A"], ["Uydurma Derin"]),
+            DersAtamasi("Rehberlik", 1, [1], ["9A"], ["Uydurma Rehber"]),
+        ],
+        kural_ayarlari=KuralAyarlari(),
+    )
+
+
+class BirlesikMuafiyetTesti(unittest.TestCase):
+    """İki öğretmenli yapısal B3 vakasında birleşik muafiyet adayının davranışını sınar."""
+
+    def test_tekil_muafiyet_yetmiyor(self):
+        """Ön koşul: tek öğretmenin muafiyeti çözüm açmamalı (diğerinin B3'ü hâlâ imkânsız)."""
+        okul = _cift_deniz_okulu()
+        okul.kural_ayarlari.b3_muaf_ogretmenler = {"Uydurma Deniz"}
+        _c, _k, yerlesim, durum = coz(okul)
+        self.assertIsNone(yerlesim)
+        self.assertEqual(durum, cp_model.INFEASIBLE)
+
+    def test_rapor_birlesik_muafiyeti_dogrulanmis_oneriyor(self):
+        """Rapor, İKİ öğretmenin birlikte muaf tutulmasını doğrulanmış aday olarak içermeli.
+
+        Kritik ayrıntı: unsat core minimal olduğundan başlangıçta yalnız
+        BİR öğretmeni gösterir; ikincisi ancak yinelemeli teşhisle
+        (hipotetik muafiyet -> yeniden teşhis) bulunur (Karar 21).
+        """
+        rapor = tanila(_cift_deniz_okulu())
+        self.assertIn("birlikte kapatmayı", rapor)
+        self.assertIn("Uydurma Deniz", rapor)
+        self.assertIn("Uydurma Derin", rapor)
+        self.assertIn("denendi: program kurulabiliyor", rapor)
+        self.assertNotIn("Üretilen hiçbir aday çözüm açmadı", rapor)
 
 
 if __name__ == "__main__":
