@@ -203,6 +203,15 @@ Saha bulgusu (Karar 15'in açık alt sorusuna girdi): 12 öğretmenin
 değil "çok-okullu ağır yük profilinde bilinen durum" tonunda
 yazılmalı. Nihai ifade kullanıcının saha yorumuyla kesinleşecek.
 
+Güncelleme (10 Tem 2026): "iki öğretmen de muaf olmalı" varsayımı
+fazlaymış. Karar 21'in yinelemeli teşhisi asgari muafiyet kümesinin
+yalnız {O12} olduğunu kanıtladı; O06'nın boş günü kurallar ihlal
+edilmeden verilebiliyor (üst katman maliyeti: 2 birim ek C2 aşımı).
+Kullanıcı kararıyla veri dosyasında muafiyet yalnız O12'ye indirildi —
+yürürlükteki elle yapılmış programda O06'nın boş günü yoktu; bunun
+modelin değil o programın kısıtı olduğu ortaya çıktı. Ayrıntı:
+ham-veri klasöründe rapor_dorduncu_kosu.txt.
+
 ## 18. C-katmanı uygulama kararları: baskınlık ağırlığı, <= kilit,
 devirli süre bütçesi, çözüm anı ceza toplama (10 Tem 2026)
 
