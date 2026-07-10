@@ -32,7 +32,7 @@ from typing import Optional
 
 from ortools.sat.python import cp_model
 
-from model import DersAtamasi, KapanisNedeni, Ogretmen, Okul
+from model import DersAtamasi, DersKategorisi, KapanisNedeni, Ogretmen, Okul
 
 
 @dataclass
@@ -448,3 +448,415 @@ def sert_kurallari_uygula(km: KisitModeli) -> None:
     b4_ayri_gune_dagilim(km)
     b6_pencere_ust_siniri(km)
     b8_sabitleme(km)
+
+
+# --- C-katmanı: yumuşak kısıtlar (kisit-envanteri.md §4-C) -----------------
+#
+# Her kural bir fonksiyon; her fonksiyon etiketli CezaTerimi listesi
+# döndürür. Amaç fonksiyonuna girmezler -- katmanlama ve ağırlıklandırma
+# coz.kademeli_coz'un işidir (veri/kural/tercih ayrımı korunur).
+#
+# ÖNEMLİ modelleme ilkesi -- çift yönlü kanal: her ceza değişkeni
+# gerçek duruma İKİ YÖNLÜ eşitlenir ("ceza=1 <=> ihlal var"), yalnız
+# alt sınırla (ceza >= ...) bırakılmaz. Nedeni kademeli akış: Geçiş
+# 2'de üst katman toplamı yalnız <= kilitle sınırlanır; tek yönlü
+# kanallanan bir üst-katman değişkeni gevşek kalıp gerçek ihlalden
+# BÜYÜK görünebilirdi. Karne bu değişkenlerden okunacağı (Karar: ceza
+# toplama çözüm anında) ve bağımsız denetçi yeniden hesapla mutabakat
+# arayacağı için gevşeklik koşuyu boşuna BAŞARISIZ sayardı.
+#
+# Rehberlik muafiyeti: REHBERLIK_DIGER kategorisindeki atamalar C2 ve
+# C5 sayımlarına girmez (rehberlik dersi zorunlu yerleşimdir; sınır
+# aşımı öğretmenin tasarrufu değildir).
+
+
+@dataclass
+class CezaTerimi:
+    """Tek bir yumuşak-kısıt ceza teriminin etiketlerini ve çözücü değişkenini tutar.
+
+    Terimin koşudaki fiili cezası = katsayi × degisken değeri;
+    ust_sinir = katsayi × değişkenin üst sınırı (baskınlık ağırlığı
+    hesabının girdisi). Etiket alanları karne kırılımını besler.
+    """
+
+    kural: str
+    katsayi: int
+    degisken: cp_model.IntVar
+    ust_sinir: int
+    ogretmen: Optional[str] = None
+    sube: Optional[str] = None
+    gun: Optional[int] = None
+
+
+UST_KATMAN_SIRASI = ["C1", "C2", "C3"]
+ALT_KATMAN_SIRASI = ["C4", "C5", "C6", "C7", "C8"]
+
+
+def _c2_c5_muaf_atama_indeksleri(okul: Okul) -> set[int]:
+    """C2/C5 sayımından muaf (REHBERLIK_DIGER kategorili) atamaların indekslerini döndürür."""
+    kategori = {d.ad: d.kategori for d in okul.dersler}
+    return {
+        a_idx
+        for a_idx, atama in enumerate(okul.ders_atamalari)
+        if kategori.get(atama.ders) == DersKategorisi.REHBERLIK_DIGER
+    }
+
+
+def _ogretmen_sube_atamalari(okul: Okul) -> dict[tuple[str, str], list[int]]:
+    """(öğretmen, şube) çiftlerinden o çifte ait C2/C5-sayılır atama indekslerine sözlük kurar."""
+    muaf = _c2_c5_muaf_atama_indeksleri(okul)
+    ciftler: dict[tuple[str, str], list[int]] = {}
+    for a_idx, atama in enumerate(okul.ders_atamalari):
+        if a_idx in muaf:
+            continue
+        for ogretmen_ad in atama.ogretmenler:
+            for sube_ad in atama.subeler:
+                ciftler.setdefault((ogretmen_ad, sube_ad), []).append(a_idx)
+    return ciftler
+
+
+def c1_bos_gun_tercih_gunu(km: KisitModeli) -> list[CezaTerimi]:
+    """Kisit-envanteri C1: boş günü tercih ettiği güne denk gelmeyen öğretmene 1 ceza (tercihi olmayana terim kurulmaz).
+
+    gun_bos çift yönlü kanallı olduğundan ceza = 1 - gun_bos eşitliği
+    yeterlidir. B3'ten muaf öğretmenin de tercihi varsa terim kurulur:
+    boş günü garanti değildir ama tercih günü denk gelirse ödüllenir.
+    """
+    terimler: list[CezaTerimi] = []
+    for ogretmen in km.okul.ogretmenler:
+        g = ogretmen.bos_gun_tercihi
+        if g is None or g not in km.gunler:
+            continue
+        ceza = km.model.NewBoolVar(f"ceza_c1_{ogretmen.ad}")
+        km.model.Add(ceza == 1 - km.gun_bos[(ogretmen.ad, g)])
+        terimler.append(
+            CezaTerimi("C1", 1, ceza, 1, ogretmen=ogretmen.ad, gun=g)
+        )
+    return terimler
+
+
+def c2_gunluk_toplam_siniri(km: KisitModeli) -> list[CezaTerimi]:
+    """Kisit-envanteri C2: öğretmenin aynı şubeye bir günde girdiği toplam saat sınırı; sınır üstü her saat 1 ceza.
+
+    Ceza değişkeni max(0, günlük toplam - sınır) değerine İKİ YÖNLÜ
+    eşitlenir (AddMaxEquality). Çiftin haftalık toplamı zaten sınırı
+    aşamıyorsa hiç terim kurulmaz (ceza yapısal 0).
+    """
+    sinir = km.okul.kural_ayarlari.ogretmen_sube_gunluk_toplam
+    terimler: list[CezaTerimi] = []
+    for (ogretmen_ad, sube_ad), atama_indeksleri in sorted(
+        _ogretmen_sube_atamalari(km.okul).items()
+    ):
+        haftalik = sum(
+            km.okul.ders_atamalari[i].haftalik_saat for i in atama_indeksleri
+        )
+        gunluk_tavan = min(haftalik, km.okul.izgara.dilim_sayisi)
+        if gunluk_tavan <= sinir:
+            continue
+        for g in km.gunler:
+            toplam = sum(
+                km.dolu[(i, g, s)] for i in atama_indeksleri for s in km.dilimler
+            )
+            fark = km.model.NewIntVar(
+                -sinir, gunluk_tavan - sinir, f"c2_fark_{ogretmen_ad}_{sube_ad}_{g}"
+            )
+            km.model.Add(fark == toplam - sinir)
+            asim = km.model.NewIntVar(
+                0, gunluk_tavan - sinir, f"ceza_c2_{ogretmen_ad}_{sube_ad}_{g}"
+            )
+            km.model.AddMaxEquality(asim, [fark, km.model.NewConstant(0)])
+            terimler.append(
+                CezaTerimi(
+                    "C2",
+                    1,
+                    asim,
+                    gunluk_tavan - sinir,
+                    ogretmen=ogretmen_ad,
+                    sube=sube_ad,
+                    gun=g,
+                )
+            )
+    return terimler
+
+
+def _pencere_kosusu_terimleri(
+    km: KisitModeli, kural: str, kosu_uzunlugu: int
+) -> list[CezaTerimi]:
+    """Bir öğretmenin gününde kosu_uzunlugu ardışık pencere dilimi oluşan her konum için çift yönlü kanallı 1 ceza kurar (C3'ün yardımcısı)."""
+    terimler: list[CezaTerimi] = []
+    for ogretmen in km.okul.ogretmenler:
+        for g in km.gunler:
+            for s in km.dilimler:
+                if s + kosu_uzunlugu - 1 > km.okul.izgara.dilim_sayisi:
+                    break
+                pencereler = [
+                    km.pencere[(ogretmen.ad, g, s2)]
+                    for s2 in range(s, s + kosu_uzunlugu)
+                ]
+                # Segment sınırındaki sabit 0'lar koşuyu imkânsız kılar.
+                if any(isinstance(p, int) for p in pencereler):
+                    continue
+                kosu = km.model.NewBoolVar(f"ceza_{kural.lower()}_{ogretmen.ad}_{g}_{s}")
+                km.model.AddBoolAnd(pencereler).OnlyEnforceIf(kosu)
+                km.model.AddBoolOr([p.Not() for p in pencereler]).OnlyEnforceIf(
+                    kosu.Not()
+                )
+                terimler.append(
+                    CezaTerimi(kural, 1, kosu, 1, ogretmen=ogretmen.ad, gun=g)
+                )
+    return terimler
+
+
+def c3_uc_saatlik_pencere(km: KisitModeli) -> list[CezaTerimi]:
+    """Kisit-envanteri C3: 3 ardışık pencere dilimi oluşan her konuma yüksek katman cezası (≥4 zaten SERT, B6)."""
+    return _pencere_kosusu_terimleri(km, "C3", 3)
+
+
+def c4_tek_saatlik_gun(km: KisitModeli) -> list[CezaTerimi]:
+    """Kisit-envanteri C4: öğretmenin bir günde toplam 1 saat dersi olması (1 saat için okula gelme) 1 ceza."""
+    terimler: list[CezaTerimi] = []
+    for ogretmen in km.okul.ogretmenler:
+        for g in km.gunler:
+            toplam = sum(km.calisiyor[(ogretmen.ad, g, s)] for s in km.dilimler)
+            tekli = km.model.NewBoolVar(f"ceza_c4_{ogretmen.ad}_{g}")
+            km.model.Add(toplam == 1).OnlyEnforceIf(tekli)
+            km.model.Add(toplam != 1).OnlyEnforceIf(tekli.Not())
+            terimler.append(
+                CezaTerimi("C4", 1, tekli, 1, ogretmen=ogretmen.ad, gun=g)
+            )
+    return terimler
+
+
+def c5_ardisiklik_siniri(km: KisitModeli) -> list[CezaTerimi]:
+    """Kisit-envanteri C5: öğretmenin aynı şubede sınır+1 ardışık dilim doldurduğu her konuma, dilimlerin tümü TEK bloğa ait değilse 1 ceza (blok içi muaf).
+
+    "Farklı-atama zinciri" modellemesi: pencere = ardisiklik_siniri + 1
+    uzunluklu her kayan dilim aralığı için (a) aralığın tamamı bu
+    öğretmen×şube çiftince dolu mu (zincir_dolu) ve (b) aralığın tamamını
+    TEK bir blok başlangıcı mı kapsıyor (ayni_blok) çift yönlü kanallanır;
+    ceza <=> zincir_dolu VE DEĞİL ayni_blok. B4 gereği aynı atamanın iki
+    bloğu aynı güne düşemeyeceğinden tek atamalık sahte zincir oluşamaz.
+    """
+    sinir = km.okul.kural_ayarlari.ardisiklik_siniri
+    pencere_boyu = sinir + 1
+    terimler: list[CezaTerimi] = []
+    for (ogretmen_ad, sube_ad), atama_indeksleri in sorted(
+        _ogretmen_sube_atamalari(km.okul).items()
+    ):
+        haftalik = sum(
+            km.okul.ders_atamalari[i].haftalik_saat for i in atama_indeksleri
+        )
+        if haftalik < pencere_boyu:
+            continue
+        for g in km.gunler:
+            for s in km.dilimler:
+                if s + pencere_boyu - 1 > km.okul.izgara.dilim_sayisi:
+                    break
+                aralik = range(s, s + pencere_boyu)
+                doluluklar = [
+                    km.dolu[(i, g, s2)] for i in atama_indeksleri for s2 in aralik
+                ]
+                zincir_dolu = km.model.NewBoolVar(
+                    f"c5_zincir_{ogretmen_ad}_{sube_ad}_{g}_{s}"
+                )
+                km.model.Add(sum(doluluklar) == pencere_boyu).OnlyEnforceIf(zincir_dolu)
+                km.model.Add(sum(doluluklar) <= pencere_boyu - 1).OnlyEnforceIf(
+                    zincir_dolu.Not()
+                )
+
+                kapsayanlar = [
+                    var
+                    for (a_idx, b_idx, gg, s0), var in km.basla.items()
+                    if a_idx in atama_indeksleri
+                    and gg == g
+                    and s0 <= s
+                    and s0 + km.okul.ders_atamalari[a_idx].blok_deseni[b_idx] - 1
+                    >= s + pencere_boyu - 1
+                ]
+                ceza = km.model.NewBoolVar(
+                    f"ceza_c5_{ogretmen_ad}_{sube_ad}_{g}_{s}"
+                )
+                if kapsayanlar:
+                    ayni_blok = km.model.NewBoolVar(
+                        f"c5_ayni_blok_{ogretmen_ad}_{sube_ad}_{g}_{s}"
+                    )
+                    km.model.AddMaxEquality(ayni_blok, kapsayanlar)
+                    km.model.AddBoolAnd([zincir_dolu, ayni_blok.Not()]).OnlyEnforceIf(
+                        ceza
+                    )
+                    km.model.AddBoolOr([zincir_dolu.Not(), ayni_blok]).OnlyEnforceIf(
+                        ceza.Not()
+                    )
+                else:
+                    km.model.Add(ceza == zincir_dolu)
+                terimler.append(
+                    CezaTerimi(
+                        "C5", 1, ceza, 1, ogretmen=ogretmen_ad, sube=sube_ad, gun=g
+                    )
+                )
+    return terimler
+
+
+def c6_pencere_dilim_cezasi(km: KisitModeli) -> list[CezaTerimi]:
+    """Kisit-envanteri C6: her pencere dilimine hafif (birim) ceza.
+
+    Modelleme notu: ceza pencere-başına değil DİLİM-başına verilir
+    (1 saatlik pencere 1, 2 saatlik 2 birim). 3 saatlik pencerenin
+    dilimleri de burada sayılır; C3 aynı pencereyi üst katmanda ayrıca
+    cezalandırır -- katmanlar ayrı optimize edildiğinden bu bilinçli
+    bir üst üste binmedir (uzun pencere her iki ölçekte de kötüdür).
+    """
+    terimler: list[CezaTerimi] = []
+    for (ogretmen_ad, g, s), p in km.pencere.items():
+        if isinstance(p, int):
+            continue
+        terimler.append(CezaTerimi("C6", 1, p, 1, ogretmen=ogretmen_ad, gun=g))
+    return terimler
+
+
+def c7_kategori_ardisikligi(km: KisitModeli) -> list[CezaTerimi]:
+    """Kisit-envanteri C7: aynı şubede aynı kategoriden iki FARKLI ders ardışık dilimlere düşerse 1 ceza (blok içi muaf; DIL kategorisi tamamen muaf).
+
+    Ardışık (s, s+1) çifti için: iki dilim de o kategoriden dolu mu
+    (cift_dolu) ve ikisini TEK blok mu kapsıyor (kopru: aynı ders,
+    tanım gereği muaf) kanallanır; ceza <=> cift_dolu VE DEĞİL kopru.
+    Aynı kategoriden iki farklı atama B1 gereği aynı dilimde çakışamaz,
+    dolayısıyla cift_dolu doğruysa dilimler ya tek bloğun ya iki farklı
+    dersin dilimleridir. (Aynı dersin iki ayrı bloğu B4 gereği aynı güne
+    düşemez; kategori değil ders kimliği üzerinden ayrım gerekmez.)
+    """
+    kategori = {d.ad: d.kategori for d in km.okul.dersler}
+    terimler: list[CezaTerimi] = []
+    for sube in km.okul.subeler:
+        for kat in DersKategorisi:
+            if kat == DersKategorisi.DIL:
+                continue
+            ilgili = [
+                a_idx
+                for a_idx, atama in enumerate(km.okul.ders_atamalari)
+                if sube.ad in atama.subeler and kategori.get(atama.ders) == kat
+            ]
+            farkli_dersler = {km.okul.ders_atamalari[i].ders for i in ilgili}
+            if len(farkli_dersler) < 2:
+                continue  # Tek ders: ardışıklık ya blok içidir ya imkânsız (B4).
+            for g in km.gunler:
+                for s in km.dilimler[:-1]:
+                    cift = [
+                        km.dolu[(i, g, s2)] for i in ilgili for s2 in (s, s + 1)
+                    ]
+                    cift_dolu = km.model.NewBoolVar(
+                        f"c7_cift_{sube.ad}_{kat.name}_{g}_{s}"
+                    )
+                    km.model.Add(sum(cift) == 2).OnlyEnforceIf(cift_dolu)
+                    km.model.Add(sum(cift) <= 1).OnlyEnforceIf(cift_dolu.Not())
+
+                    kapsayanlar = [
+                        var
+                        for (a_idx, b_idx, gg, s0), var in km.basla.items()
+                        if a_idx in ilgili
+                        and gg == g
+                        and s0 <= s
+                        and s0 + km.okul.ders_atamalari[a_idx].blok_deseni[b_idx] - 1
+                        >= s + 1
+                    ]
+                    ceza = km.model.NewBoolVar(
+                        f"ceza_c7_{sube.ad}_{kat.name}_{g}_{s}"
+                    )
+                    if kapsayanlar:
+                        kopru = km.model.NewBoolVar(
+                            f"c7_kopru_{sube.ad}_{kat.name}_{g}_{s}"
+                        )
+                        km.model.AddMaxEquality(kopru, kapsayanlar)
+                        km.model.AddBoolAnd([cift_dolu, kopru.Not()]).OnlyEnforceIf(
+                            ceza
+                        )
+                        km.model.AddBoolOr([cift_dolu.Not(), kopru]).OnlyEnforceIf(
+                            ceza.Not()
+                        )
+                    else:
+                        km.model.Add(ceza == cift_dolu)
+                    terimler.append(
+                        CezaTerimi("C7", 1, ceza, 1, sube=sube.ad, gun=g)
+                    )
+    return terimler
+
+
+def c8_dilim_tercihleri(km: KisitModeli) -> list[CezaTerimi]:
+    """Kisit-envanteri C8: sayısal dersler sabaha, sanat-spor son saatlere -- kategoriye göre dilim ceza vektörü × doluluk.
+
+    Yeni değişken kurulmaz: dolu zaten çift yönlü kanallıdır; terim,
+    katsayısı vektörden gelen mevcut dolu değişkenidir.
+    """
+    kategori = {d.ad: d.kategori for d in km.okul.dersler}
+    vektorler = {
+        DersKategorisi.SAYISAL: km.okul.kural_ayarlari.sayisal_dilim_cezasi,
+        DersKategorisi.SANAT_SPOR: km.okul.kural_ayarlari.sanat_spor_dilim_cezasi,
+    }
+    terimler: list[CezaTerimi] = []
+    for a_idx, atama in enumerate(km.okul.ders_atamalari):
+        vektor = vektorler.get(kategori.get(atama.ders))
+        if vektor is None:
+            continue
+        sube_etiketi = ",".join(atama.subeler)
+        for g in km.gunler:
+            for s in km.dilimler:
+                katsayi = vektor[s - 1] if s - 1 < len(vektor) else 0
+                if katsayi <= 0:
+                    continue
+                terimler.append(
+                    CezaTerimi(
+                        "C8",
+                        katsayi,
+                        km.dolu[(a_idx, g, s)],
+                        katsayi,
+                        ogretmen=atama.ogretmenler[0] if atama.ogretmenler else None,
+                        sube=sube_etiketi,
+                        gun=g,
+                    )
+                )
+    return terimler
+
+
+def yumusak_kurallari_kur(km: KisitModeli) -> dict[str, list[CezaTerimi]]:
+    """C1-C8 ceza terimlerini kurup kural adına göre sözlükte toplar (amaç fonksiyonu kurmaz -- o coz.kademeli_coz'un işidir).
+
+    KuralAyarlari.kapali_kurallar kümesindeki kurallar hiç kurulmaz:
+    sözlükte boş listeyle yer alırlar (katman toplamına 0 katkı,
+    baskınlık hesabında 0 tavan); denetçi mutabakatı da aynı kümeyi
+    gözettiğinden kapalı kural karnede "kapalı" görünür.
+    """
+    kurucular = {
+        "C1": c1_bos_gun_tercih_gunu,
+        "C2": c2_gunluk_toplam_siniri,
+        "C3": c3_uc_saatlik_pencere,
+        "C4": c4_tek_saatlik_gun,
+        "C5": c5_ardisiklik_siniri,
+        "C6": c6_pencere_dilim_cezasi,
+        "C7": c7_kategori_ardisikligi,
+        "C8": c8_dilim_tercihleri,
+    }
+    kapali = km.okul.kural_ayarlari.kapali_kurallar
+    return {
+        kural: ([] if kural in kapali else kurucu(km))
+        for kural, kurucu in kurucular.items()
+    }
+
+
+def baskinlik_agirliklari(
+    oncelik_sirasi: list[str], terimler: dict[str, list[CezaTerimi]]
+) -> dict[str, int]:
+    """Katman içi öncelik sırası için baskınlık ağırlıklarını hesaplar.
+
+    İlke (onaylı uygulama kararı): bir kuralın birim cezası, kendinden
+    düşük öncelikli TÜM kuralların ulaşabileceği ağırlıklı toplam
+    cezadan büyük olmalı -- böylece üstteki kuralın 1 birim iyileşmesi
+    alttakilerin hiçbir kombinasyonuyla takas edilemez. Ağırlıklar elle
+    sabitlenmez; her koşuda terimlerin üst sınırlarından hesaplanır.
+    """
+    agirliklar: dict[str, int] = {}
+    alt_agirlikli_tavan = 0
+    for kural in reversed(oncelik_sirasi):
+        agirliklar[kural] = alt_agirlikli_tavan + 1
+        kural_tavani = sum(t.ust_sinir for t in terimler.get(kural, []))
+        alt_agirlikli_tavan += agirliklar[kural] * kural_tavani
+    return agirliklar
