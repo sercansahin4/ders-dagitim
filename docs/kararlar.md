@@ -268,3 +268,24 @@ Yürürlükteki git sözleşmesi korunur: her oturumun ilk işi git pull
 (GitHub web düzenlemeleri hâlâ mümkün olduğundan sapma riski sıfır
 değildir); oturum sonunda iş commit'lenir ve push edilir -- bekleyen
 lokal commit bırakılmaz.
+
+## 20. Veri-yerel mimari ana plan olarak kesinleşti -- şartlı (10 Tem 2026)
+
+Karar 2'nin açık bıraktığı performans sorusu sentetik büyük okul
+deneyiyle yanıtlandı (docs/performans-deneyi.md): 43 şube / 92
+öğretmen, native CP-SAT'ta ~32 sn'de temiz ve denetlenmiş çözüm
+(Kaşif referansı: aynı boyutta 18 dk 29 sn). wasm'ın 2-5× yavaşlık
+payıyla bile tarayıcı koşusu dakikalar mertebesinde kalır.
+
+Karar: veri-yerel (tarayıcıda çözücü) mimari ANA PLANDIR. Nihai
+kesinleşme Aşama 3 başındaki wasm duman testine bağlıdır; test iki
+şeyi doğrulamalı: (a) tarayıcıda iş parçacığı kısıtının süreye etkisi
+(native koşu çok çekirdek kullandı; tek iş parçacığında ceza 5-10×
+olabilir), (b) unsat core / assumptions API'sinin wasm katmanında
+erişilebilirliği (Karar 10'daki bilinen risk). İkisinden biri
+sağlanamazsa B planı (karma yapı: yerel veri + sunucuda çözücü)
+devreye girer; B planının Python çözücüsü zaten üretim kalitesinde
+yaşıyor.
+
+Bilinçli feragat: karar sunucu sınıfı CPU'da ölçülen sürelere
+dayanıyor; okul donanımı payı wasm duman testinde ayrıca ölçülecek.
