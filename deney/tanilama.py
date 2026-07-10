@@ -477,6 +477,59 @@ def _kisisel_tercih_adaylari(
     return adaylar
 
 
+def _kural_muafiyeti_adaylari(okul: Okul, b3_ogretmenler: list[str]) -> list[OneriAdayi]:
+    """Basamak 5 (Karar 15): B3 core'unda görünen öğretmen için boş gün garantisinin O ÖĞRETMENE ÖZEL kapatılması adayını üretir.
+
+    Kural parametreleri de meşru gevşetme adaylarıdır (Karar 15
+    gerekçesi): dış okul yükü boş günü yapısal olarak imkânsız kılan
+    öğretmende hiçbir veri değişikliği (desen, yük devri, kapanış)
+    çözüm açamaz -- tek dürüst öneri kuralın o öğetmen için, kayıt
+    altına alınarak kapatılmasıdır. Uyarı tonu Karar 17 saha bulgusuna
+    göre yazılmıştır: bu, istisnai bir anomali değil, çok-okullu ağır
+    yük profilinde bilinen bir durumdur. Aday, diğer tüm adaylar gibi
+    yeniden-çöz doğrulamasından geçer; muafiyet A-katmanı kapasite
+    hesabına da işlediğinden (Karar 17) doğrulama tutarlıdır.
+    """
+    adaylar: list[OneriAdayi] = []
+    for ogretmen_adi in b3_ogretmenler:
+        if ogretmen_adi in okul.kural_ayarlari.b3_muaf_ogretmenler:
+            continue
+        ogretmen = next(o for o in okul.ogretmenler if o.ad == ogretmen_adi)
+        dis_okul_gunleri = sorted(
+            {k.gun for k in ogretmen.kapanislar if k.neden == KapanisNedeni.DIS_OKUL}
+        )
+        yeni_okul = deepcopy(okul)
+        yeni_okul.kural_ayarlari.b3_muaf_ogretmenler = set(
+            yeni_okul.kural_ayarlari.b3_muaf_ogretmenler
+        ) | {ogretmen_adi}
+
+        if dis_okul_gunleri:
+            gerekce = (
+                f"{_gunleri_metne_cevir(dis_okul_gunleri)} günleri dış okul "
+                f"görevinde olduğundan bu okulda tam boş gün bırakmak yapısal "
+                f"olarak mümkün görünmüyor; bu, çok okullu ağır yük profilinde "
+                f"bilinen bir durumdur"
+            )
+        else:
+            gerekce = (
+                "mevcut ders yükü dağılımıyla hiçbir gün tamamen "
+                "boşaltılamıyor"
+            )
+        adaylar.append(
+            OneriAdayi(
+                basamak=5,
+                aciklama=(
+                    f"{ogretmen_adi} öğretmeni için boş gün garantisi kuralını "
+                    f"bu öğretmene özel kapatmayı değerlendirin: {gerekce} "
+                    f"(kural ayarlarına kayıt düşülerek uygulanır, diğer "
+                    f"öğretmenlerin garantisi etkilenmez)"
+                ),
+                okul=yeni_okul,
+            )
+        )
+    return adaylar
+
+
 def _idari_adaylari(
     okul: Okul, kapanis_gruplari: list[tuple[str, KapanisNedeni]]
 ) -> list[OneriAdayi]:
@@ -532,7 +585,7 @@ def _hizli_modda_cozulebilir_mi(okul: Okul) -> bool:
 def dogrulanmis_oneriler_uret(
     okul: Okul, cekirdek: list[VarsayimAnahtari]
 ) -> tuple[list[str], int, float]:
-    """Basamak sırasıyla (desen -> yük devri -> sabitleme -> kişisel tercih -> idari) aday üretir, her adayı hipotetik olarak HIZLI modda çözer.
+    """Basamak sırasıyla (desen -> yük devri -> sabitleme -> kişisel tercih -> kural muafiyeti -> idari) aday üretir, her adayı hipotetik olarak HIZLI modda çözer.
 
     Rapora yalnız çözüm açan adaylar girer ("denendi" etiketiyle).
     Dönüş: (onaylanmış öneri cümleleri, toplam deneme sayısı, geçen süre saniye).
@@ -556,6 +609,7 @@ def dogrulanmis_oneriler_uret(
         _yuk_devri_adaylari(okul, core_atama_indeksleri_sirali),
         _sabitleme_adaylari(okul, core_atama_indeksleri_sirali),
         _kisisel_tercih_adaylari(okul, kapanis_gruplari),
+        _kural_muafiyeti_adaylari(okul, b3_ogretmenler),
     ]
 
     onaylanmis: list[str] = []
