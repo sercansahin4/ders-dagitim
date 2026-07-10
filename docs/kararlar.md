@@ -251,3 +251,20 @@ Ek modelleme notları:
 - KuralAyarlari.kapali_kurallar kümesi bir C kuralını bütünüyle kapatır
   (terim kurulmaz, karne "KAPALI" gösterir); B4'ün "gevşetilebilir
   ayar" ilkesinin (kisit-envanteri) C-katmanındaki karşılığıdır.
+
+## 19. Geliştirme tek kanaldan: aynı anda tek yapay zekâ oturumu
+(10 Tem 2026)
+
+Geliştirme Cowork oturumunda yürütülür; Claude Code eşzamanlı
+KULLANILMAZ (tersi de geçerli: hangisi kullanılıyorsa o an tektir).
+
+Gerekçe: 10 Temmuz'da aynı yerel klonda iki oturum (Cowork + Claude
+Code) eşzamanlı çalıştı; sonuç dal sapması, rebase'te Karar 17 metni
+çakışması ve iki oturumun birbirinin işini "paralel akış" diye
+raporlaması oldu. Bu kez veri kaybı yaşanmadı; ancak iki oturumun
+aynı dosyaya yazması sessiz kayıp üretebilirdi.
+
+Yürürlükteki git sözleşmesi korunur: her oturumun ilk işi git pull
+(GitHub web düzenlemeleri hâlâ mümkün olduğundan sapma riski sıfır
+değildir); oturum sonunda iş commit'lenir ve push edilir -- bekleyen
+lokal commit bırakılmaz.
