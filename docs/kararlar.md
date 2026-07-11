@@ -202,6 +202,8 @@ Saha bulgusu (Karar 15'in açık alt sorusuna girdi): 12 öğretmenin
 2'sinde muafiyet fiilen mevcut durum; uyarı metni "istisnai anomali"
 değil "çok-okullu ağır yük profilinde bilinen durum" tonunda
 yazılmalı. Nihai ifade kullanıcının saha yorumuyla kesinleşecek.
+(11 Tem 2026: kullanıcı sahaya dönük uyarı cümlesinin tonunu onayladı;
+açık soru kapandı, şablon bu tonla kalır.)
 
 Güncelleme (10 Tem 2026): "iki öğretmen de muaf olmalı" varsayımı
 fazlaymış. Karar 21'in yinelemeli teşhisi asgari muafiyet kümesinin
@@ -325,6 +327,9 @@ okulumuzda muafiyet iki öğretmende BİRLİKTE gerekiyordu (Karar 17).
 Kapsam sınırı korunur: yineleme yalnız muafiyet basamağında ve tavanlı;
 diğer basamaklarda aday-listesi yaklaşımı değişmedi. Genel karşı-olgusal
 arama hâlâ İleride #7'dir.
+
+Onay (11 Tem 2026): ilke değişikliği kullanıcı tarafından okundu ve
+açıkça onaylandı; Karar 18-22 kayıtlarının okunması da tamamlandı.
 
 ## 22. Çift gerçekleme disiplini: Python referans, TS altın testlerle eşitlenir (11 Tem 2026)
 
