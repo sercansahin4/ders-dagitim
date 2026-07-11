@@ -8,7 +8,9 @@ Türk okul yöneticisinin kavramlarıyla (şube, ders yükü, blok,
 karnıyarık) baştan Türkçe kurulur; çözüm bulamadığında nedenini
 eyleme dönük Türkçe cümlelerle açıklar. Veri cihazdan çıkmaz.
 
-**Durum:** Erken geliştirme (Hafta 2/8) — çözücü fizibilite deneyi.
+**Durum:** Erken geliştirme (Hafta 2/8) — mimari kesinleşti (veri-yerel,
+tarayıcı-içi wasm; Karar 20); TypeScript çevirisi altın testlerle başladı
+(Karar 22).
 Henüz kullanılabilir sürüm yok.
 
 **Belgeler:** docs/ altında emsal analizi, kısıt envanteri,

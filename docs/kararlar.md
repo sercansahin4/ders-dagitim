@@ -325,3 +325,35 @@ okulumuzda muafiyet iki öğretmende BİRLİKTE gerekiyordu (Karar 17).
 Kapsam sınırı korunur: yineleme yalnız muafiyet basamağında ve tavanlı;
 diğer basamaklarda aday-listesi yaklaşımı değişmedi. Genel karşı-olgusal
 arama hâlâ İleride #7'dir.
+
+## 22. Çift gerçekleme disiplini: Python referans, TS altın testlerle eşitlenir (11 Tem 2026)
+
+Aşama 3 (Karar 20) model mantığının TypeScript'te ikinci bir
+gerçeklemesini zorunlu kılar. İki gerçeklemenin sessizce ayrışması
+(drift) bundan sonraki en büyük teknik risk kabul edildi ve şu
+disiplinle karşılanır:
+
+- **Python (deney/) referans gerçeklemedir.** Davranış tanımı orada
+  yaşar; TS (web/) çeviridir. Davranış değişikliği önce Python'da
+  yapılır (veya iki tarafta birlikte), asla yalnız TS'te.
+- **Altın testler:** deney/altin_uret.py sabit fixture okulları
+  üzerinde beklenen çıktıları deney/veri/altin/ altına yazar; web/
+  tarafında Vitest aynı girdi dosyalarından TS çıktısının bire bir
+  eşitliğini şart koşar. Beklenen dosya elle düzenlenmez; yalnız
+  altin_uret.py ile yenilenir ve iki taraf birlikte commit'lenir.
+- **Eşitlik ölçütü mesaj metnidir (bilinçli katı):** kapasite/rezerv
+  gibi sayısal hesaplar mesajın içinde geçtiğinden metin eşitliği hem
+  mantığı hem kullanıcıya dönük Türkçe ifadeyi aynı anda doğrular.
+  Bekçinin çalıştığı kasıtlı tek-karakter sapmayla doğrulandı
+  (test kırıldı, geri alınca 15/15 yeşile döndü).
+- **Kapsam kademeli genişler:** bugün A-katmanı (14 fixture, 8 kontrolün
+  tamamı). Çözücü çevirisi geldiğinde ölçüt genişler: iki kademenin
+  amaç değerleri eşit + TS çözümü Python bağımsız denetçisinden
+  (karne.py) geçer. Proto-düzeyi karşılaştırma bilinçli reddedildi:
+  değişken/kısıt sıralaması farkı sahte alarm üretir, davranışsal
+  eşdeğerlik ürünün umursadığı şeydir.
+- **Araç seti asgari tutuldu:** web/ şimdilik yalnız TypeScript
+  (strict) + Vitest. Vite arayüz faziyle, or-tools-wasm (0.9.1,
+  tarayıcı testindeki sürüm) çözücü çevirisiyle eklenir. Arayüz
+  çerçevesi kararı (React vs alternatifler) arayüz fazı başında ayrı
+  bir karar kaydıyla verilecek.
