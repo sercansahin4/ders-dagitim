@@ -1,0 +1,41 @@
+{
+  "veri/ornek_okul.json": [],
+  "veri/mutasyonlar/b4_disokul_kapanis_deniz.json": [],
+  "veri/mutasyonlar/b4_idari_kapanis_aylin.json": [],
+  "veri/mutasyonlar/b4_kisisel_tercih_kapanis_gokhan.json": [],
+  "veri/altin/girdiler/a1_sube_hds_asimi.json": [
+    "9-A şubesinin haftalık ders saati toplamı (70) ızgaranın taşıyabileceği 40 dilimi aşıyor: bu şubeye atanan derslerden birinin saatini azaltın veya başka şubeye taşıyın.",
+    "Aylin Kaptan: atanmış yük (54 saat) müsait kapasiteyi (32 dilim, kapanışlar ve garanti boş gün düşülmüş) aşıyor: yükünü azaltın, kapanışlarından birini kaldırın veya bir dersini başka öğretmenle paylaştırın.",
+    "Matematik dersini verebilecek öğretmenlerin toplam kapasitesi (32 dilim) toplam talebi (53 saat) karşılamıyor: bu branştan başka öğretmen ekleyin veya mevcut öğretmenlerin kapanışlarını azaltın."
+  ],
+  "veri/altin/girdiler/a2_ogretmensiz_atama.json": [
+    "Matematik dersi (9-A şube(ler)i) için hiç öğretmen atanmamış: bu ders atamasına bir öğretmen ekleyin."
+  ],
+  "veri/altin/girdiler/a3_bilinmeyen_ogretmen.json": [
+    "Matematik dersine atanan 'Olmayan Öğretmen' adlı öğretmen öğretmen listesinde bulunamadı: adı düzeltin veya öğretmeni ekleyin."
+  ],
+  "veri/altin/girdiler/a3_brans_uyumsuzlugu.json": [
+    "Burak Deniz, Matematik dersini verebileceği dersler listesinde görünmüyor: ya bu dersi öğretmenin verebilecegi_dersler listesine ekleyin ya da atamayı branşı uygun bir öğretmene verin."
+  ],
+  "veri/altin/girdiler/a4_blok_toplami_bozuk.json": [
+    "Matematik dersinin blok deseni toplamı (5) haftalık ders saatiyle (4) eşleşmiyor: blok_deseni listesini haftalik_saat toplamına eşitleyin."
+  ],
+  "veri/altin/girdiler/a5_blok_sayisi_fazla.json": [
+    "Matematik dersinin 6 bloğu var ama haftada yalnız 5 gün mevcut (her blok ayrı güne düşer): blok sayısını azaltın veya blokları birleştirin."
+  ],
+  "veri/altin/girdiler/a6_ogretmen_silindi.json": [
+    "Matematik dersine atanan 'Aylin Kaptan' adlı öğretmen öğretmen listesinde bulunamadı: adı düzeltin veya öğretmeni ekleyin.",
+    "Rehberlik dersine atanan 'Aylin Kaptan' adlı öğretmen öğretmen listesinde bulunamadı: adı düzeltin veya öğretmeni ekleyin.",
+    "Matematik dersine atanan 'Aylin Kaptan' adlı öğretmen öğretmen listesinde bulunamadı: adı düzeltin veya öğretmeni ekleyin.",
+    "Matematik dersine atanan 'Aylin Kaptan' adlı öğretmen öğretmen listesinde bulunamadı: adı düzeltin veya öğretmeni ekleyin.",
+    "Matematik dersini verebilecek hiç öğretmen yok ama toplam 13 saat talep var: en az bir öğretmenin verebilecegi_dersler listesine Matematik'i ekleyin.",
+    "9-A şubesinin sınıf rehber öğretmeni olarak gösterilen 'Aylin Kaptan' öğretmen listesinde yok: adı düzeltin veya öğretmeni ekleyin."
+  ],
+  "veri/altin/girdiler/a7_rehber_tanimsiz.json": [
+    "9-A şubesinin sınıf rehber öğretmeni tanımlı değil: Sube.sinif_rehber_ogretmeni alanını doldurun."
+  ],
+  "veri/altin/girdiler/a8_rehber_bilinmiyor.json": [
+    "9-A şubesinin sınıf rehber öğretmeni olarak gösterilen 'Olmayan Öğretmen' öğretmen listesinde yok: adı düzeltin veya öğretmeni ekleyin."
+  ],
+  "veri/altin/girdiler/sentetik_s6.json": []
+}

@@ -1,0 +1,1859 @@
+{
+  "izgara": {
+    "gun_sayisi": 5,
+    "dilim_sayisi": 8,
+    "ogle_arasi_sonrasi_dilim": 5,
+    "ogle_arasi_bloklari_boler": false
+  },
+  "dersler": [
+    {
+      "ad": "Matematik",
+      "kategori": "SAYISAL"
+    },
+    {
+      "ad": "Turk Dili ve Edebiyati",
+      "kategori": "SOZEL"
+    },
+    {
+      "ad": "Ingilizce",
+      "kategori": "DIL"
+    },
+    {
+      "ad": "Fizik",
+      "kategori": "SAYISAL"
+    },
+    {
+      "ad": "Kimya",
+      "kategori": "SAYISAL"
+    },
+    {
+      "ad": "Biyoloji",
+      "kategori": "SAYISAL"
+    },
+    {
+      "ad": "Tarih",
+      "kategori": "SOZEL"
+    },
+    {
+      "ad": "Cografya",
+      "kategori": "SOZEL"
+    },
+    {
+      "ad": "Din Kulturu",
+      "kategori": "SOZEL"
+    },
+    {
+      "ad": "Felsefe",
+      "kategori": "SOZEL"
+    },
+    {
+      "ad": "Almanca",
+      "kategori": "DIL"
+    },
+    {
+      "ad": "Beden Egitimi",
+      "kategori": "SANAT_SPOR"
+    },
+    {
+      "ad": "Muzik",
+      "kategori": "SANAT_SPOR"
+    },
+    {
+      "ad": "Gorsel Sanatlar",
+      "kategori": "SANAT_SPOR"
+    },
+    {
+      "ad": "Secmeli Matematik",
+      "kategori": "SAYISAL"
+    },
+    {
+      "ad": "Rehberlik",
+      "kategori": "REHBERLIK_DIGER"
+    }
+  ],
+  "ogretmenler": [
+    {
+      "ad": "S001",
+      "verebilecegi_dersler": [
+        "Almanca"
+      ],
+      "bos_gun_tercihi": 3,
+      "kapanislar": []
+    },
+    {
+      "ad": "S002",
+      "verebilecegi_dersler": [
+        "Beden Egitimi"
+      ],
+      "bos_gun_tercihi": null,
+      "kapanislar": [
+        {
+          "gun": 2,
+          "dilimler": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "neden": "DIS_OKUL"
+        }
+      ]
+    },
+    {
+      "ad": "S003",
+      "verebilecegi_dersler": [
+        "Biyoloji"
+      ],
+      "bos_gun_tercihi": null,
+      "kapanislar": []
+    },
+    {
+      "ad": "S004",
+      "verebilecegi_dersler": [
+        "Cografya"
+      ],
+      "bos_gun_tercihi": 1,
+      "kapanislar": [
+        {
+          "gun": 4,
+          "dilimler": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "neden": "DIS_OKUL"
+        }
+      ]
+    },
+    {
+      "ad": "S005",
+      "verebilecegi_dersler": [
+        "Din Kulturu"
+      ],
+      "bos_gun_tercihi": null,
+      "kapanislar": [
+        {
+          "gun": 5,
+          "dilimler": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "neden": "DIS_OKUL"
+        }
+      ]
+    },
+    {
+      "ad": "S006",
+      "verebilecegi_dersler": [
+        "Turk Dili ve Edebiyati"
+      ],
+      "bos_gun_tercihi": null,
+      "kapanislar": []
+    },
+    {
+      "ad": "S007",
+      "verebilecegi_dersler": [
+        "Turk Dili ve Edebiyati"
+      ],
+      "bos_gun_tercihi": 4,
+      "kapanislar": []
+    },
+    {
+      "ad": "S008",
+      "verebilecegi_dersler": [
+        "Felsefe"
+      ],
+      "bos_gun_tercihi": null,
+      "kapanislar": []
+    },
+    {
+      "ad": "S009",
+      "verebilecegi_dersler": [
+        "Fizik"
+      ],
+      "bos_gun_tercihi": null,
+      "kapanislar": [
+        {
+          "gun": 2,
+          "dilimler": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "neden": "DIS_OKUL"
+        }
+      ]
+    },
+    {
+      "ad": "S010",
+      "verebilecegi_dersler": [
+        "Gorsel Sanatlar"
+      ],
+      "bos_gun_tercihi": 3,
+      "kapanislar": []
+    },
+    {
+      "ad": "S011",
+      "verebilecegi_dersler": [
+        "Ingilizce"
+      ],
+      "bos_gun_tercihi": 3,
+      "kapanislar": [
+        {
+          "gun": 4,
+          "dilimler": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "neden": "DIS_OKUL"
+        }
+      ]
+    },
+    {
+      "ad": "S012",
+      "verebilecegi_dersler": [
+        "Ingilizce"
+      ],
+      "bos_gun_tercihi": null,
+      "kapanislar": []
+    },
+    {
+      "ad": "S013",
+      "verebilecegi_dersler": [
+        "Kimya"
+      ],
+      "bos_gun_tercihi": 4,
+      "kapanislar": []
+    },
+    {
+      "ad": "S014",
+      "verebilecegi_dersler": [
+        "Matematik",
+        "Secmeli Matematik",
+        "Rehberlik"
+      ],
+      "bos_gun_tercihi": null,
+      "kapanislar": [
+        {
+          "gun": 3,
+          "dilimler": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "neden": "DIS_OKUL"
+        }
+      ]
+    },
+    {
+      "ad": "S015",
+      "verebilecegi_dersler": [
+        "Matematik",
+        "Secmeli Matematik",
+        "Rehberlik"
+      ],
+      "bos_gun_tercihi": null,
+      "kapanislar": []
+    },
+    {
+      "ad": "S016",
+      "verebilecegi_dersler": [
+        "Matematik",
+        "Secmeli Matematik",
+        "Rehberlik"
+      ],
+      "bos_gun_tercihi": null,
+      "kapanislar": []
+    },
+    {
+      "ad": "S017",
+      "verebilecegi_dersler": [
+        "Muzik"
+      ],
+      "bos_gun_tercihi": null,
+      "kapanislar": [
+        {
+          "gun": 2,
+          "dilimler": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "neden": "DIS_OKUL"
+        }
+      ]
+    },
+    {
+      "ad": "S018",
+      "verebilecegi_dersler": [
+        "Tarih"
+      ],
+      "bos_gun_tercihi": null,
+      "kapanislar": []
+    }
+  ],
+  "subeler": [
+    {
+      "ad": "10A",
+      "sinif_rehber_ogretmeni": "S014"
+    },
+    {
+      "ad": "10B",
+      "sinif_rehber_ogretmeni": "S016"
+    },
+    {
+      "ad": "11A",
+      "sinif_rehber_ogretmeni": "S015"
+    },
+    {
+      "ad": "12A",
+      "sinif_rehber_ogretmeni": "S016"
+    },
+    {
+      "ad": "9A",
+      "sinif_rehber_ogretmeni": "S014"
+    },
+    {
+      "ad": "9B",
+      "sinif_rehber_ogretmeni": "S015"
+    }
+  ],
+  "ders_atamalari": [
+    {
+      "ders": "Matematik",
+      "haftalik_saat": 6,
+      "blok_deseni": [
+        2,
+        2,
+        2
+      ],
+      "subeler": [
+        "10A"
+      ],
+      "ogretmenler": [
+        "S014"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Turk Dili ve Edebiyati",
+      "haftalik_saat": 5,
+      "blok_deseni": [
+        2,
+        2,
+        1
+      ],
+      "subeler": [
+        "10A"
+      ],
+      "ogretmenler": [
+        "S006"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Ingilizce",
+      "haftalik_saat": 4,
+      "blok_deseni": [
+        2,
+        2
+      ],
+      "subeler": [
+        "10A"
+      ],
+      "ogretmenler": [
+        "S011"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Fizik",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10A"
+      ],
+      "ogretmenler": [
+        "S009"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Kimya",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10A"
+      ],
+      "ogretmenler": [
+        "S013"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Biyoloji",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10A"
+      ],
+      "ogretmenler": [
+        "S003"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Tarih",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10A"
+      ],
+      "ogretmenler": [
+        "S018"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Cografya",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10A"
+      ],
+      "ogretmenler": [
+        "S004"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Din Kulturu",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10A"
+      ],
+      "ogretmenler": [
+        "S005"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Felsefe",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10A"
+      ],
+      "ogretmenler": [
+        "S008"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Almanca",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10A"
+      ],
+      "ogretmenler": [
+        "S001"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Beden Egitimi",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10A"
+      ],
+      "ogretmenler": [
+        "S002"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Muzik",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "10A"
+      ],
+      "ogretmenler": [
+        "S017"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Gorsel Sanatlar",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "10A"
+      ],
+      "ogretmenler": [
+        "S010"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Secmeli Matematik",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10A"
+      ],
+      "ogretmenler": [
+        "S015"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Matematik",
+      "haftalik_saat": 6,
+      "blok_deseni": [
+        2,
+        2,
+        2
+      ],
+      "subeler": [
+        "10B"
+      ],
+      "ogretmenler": [
+        "S016"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Turk Dili ve Edebiyati",
+      "haftalik_saat": 5,
+      "blok_deseni": [
+        2,
+        2,
+        1
+      ],
+      "subeler": [
+        "10B"
+      ],
+      "ogretmenler": [
+        "S007"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Ingilizce",
+      "haftalik_saat": 4,
+      "blok_deseni": [
+        2,
+        2
+      ],
+      "subeler": [
+        "10B"
+      ],
+      "ogretmenler": [
+        "S012"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Fizik",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10B"
+      ],
+      "ogretmenler": [
+        "S009"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Kimya",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10B"
+      ],
+      "ogretmenler": [
+        "S013"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Biyoloji",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10B"
+      ],
+      "ogretmenler": [
+        "S003"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Tarih",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10B"
+      ],
+      "ogretmenler": [
+        "S018"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Cografya",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10B"
+      ],
+      "ogretmenler": [
+        "S004"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Din Kulturu",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10B"
+      ],
+      "ogretmenler": [
+        "S005"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Felsefe",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10B"
+      ],
+      "ogretmenler": [
+        "S008"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Almanca",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10B"
+      ],
+      "ogretmenler": [
+        "S001"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Beden Egitimi",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10B"
+      ],
+      "ogretmenler": [
+        "S002"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Muzik",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "10B"
+      ],
+      "ogretmenler": [
+        "S017"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Gorsel Sanatlar",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "10B"
+      ],
+      "ogretmenler": [
+        "S010"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Secmeli Matematik",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "10B"
+      ],
+      "ogretmenler": [
+        "S015"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Matematik",
+      "haftalik_saat": 6,
+      "blok_deseni": [
+        2,
+        2,
+        2
+      ],
+      "subeler": [
+        "11A"
+      ],
+      "ogretmenler": [
+        "S015"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Turk Dili ve Edebiyati",
+      "haftalik_saat": 5,
+      "blok_deseni": [
+        2,
+        2,
+        1
+      ],
+      "subeler": [
+        "11A"
+      ],
+      "ogretmenler": [
+        "S006"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Ingilizce",
+      "haftalik_saat": 4,
+      "blok_deseni": [
+        2,
+        2
+      ],
+      "subeler": [
+        "11A"
+      ],
+      "ogretmenler": [
+        "S011"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Fizik",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "11A"
+      ],
+      "ogretmenler": [
+        "S009"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Kimya",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "11A"
+      ],
+      "ogretmenler": [
+        "S013"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Biyoloji",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "11A"
+      ],
+      "ogretmenler": [
+        "S003"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Tarih",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "11A"
+      ],
+      "ogretmenler": [
+        "S018"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Cografya",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "11A"
+      ],
+      "ogretmenler": [
+        "S004"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Din Kulturu",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "11A"
+      ],
+      "ogretmenler": [
+        "S005"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Felsefe",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "11A"
+      ],
+      "ogretmenler": [
+        "S008"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Almanca",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "11A"
+      ],
+      "ogretmenler": [
+        "S001"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Beden Egitimi",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "11A"
+      ],
+      "ogretmenler": [
+        "S002"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Muzik",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "11A"
+      ],
+      "ogretmenler": [
+        "S017"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Gorsel Sanatlar",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "11A"
+      ],
+      "ogretmenler": [
+        "S010"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Secmeli Matematik",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "11A"
+      ],
+      "ogretmenler": [
+        "S014"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Matematik",
+      "haftalik_saat": 6,
+      "blok_deseni": [
+        2,
+        2,
+        2
+      ],
+      "subeler": [
+        "12A"
+      ],
+      "ogretmenler": [
+        "S016"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Turk Dili ve Edebiyati",
+      "haftalik_saat": 5,
+      "blok_deseni": [
+        2,
+        2,
+        1
+      ],
+      "subeler": [
+        "12A"
+      ],
+      "ogretmenler": [
+        "S007"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Ingilizce",
+      "haftalik_saat": 4,
+      "blok_deseni": [
+        2,
+        2
+      ],
+      "subeler": [
+        "12A"
+      ],
+      "ogretmenler": [
+        "S012"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Fizik",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "12A"
+      ],
+      "ogretmenler": [
+        "S009"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Kimya",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "12A"
+      ],
+      "ogretmenler": [
+        "S013"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Biyoloji",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "12A"
+      ],
+      "ogretmenler": [
+        "S003"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Tarih",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "12A"
+      ],
+      "ogretmenler": [
+        "S018"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Cografya",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "12A"
+      ],
+      "ogretmenler": [
+        "S004"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Din Kulturu",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "12A"
+      ],
+      "ogretmenler": [
+        "S005"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Felsefe",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "12A"
+      ],
+      "ogretmenler": [
+        "S008"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Almanca",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "12A"
+      ],
+      "ogretmenler": [
+        "S001"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Beden Egitimi",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "12A"
+      ],
+      "ogretmenler": [
+        "S002"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Muzik",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "12A"
+      ],
+      "ogretmenler": [
+        "S017"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Gorsel Sanatlar",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "12A"
+      ],
+      "ogretmenler": [
+        "S010"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Secmeli Matematik",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "12A"
+      ],
+      "ogretmenler": [
+        "S014"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Matematik",
+      "haftalik_saat": 6,
+      "blok_deseni": [
+        2,
+        2,
+        2
+      ],
+      "subeler": [
+        "9A"
+      ],
+      "ogretmenler": [
+        "S014"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Turk Dili ve Edebiyati",
+      "haftalik_saat": 5,
+      "blok_deseni": [
+        2,
+        2,
+        1
+      ],
+      "subeler": [
+        "9A"
+      ],
+      "ogretmenler": [
+        "S006"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Ingilizce",
+      "haftalik_saat": 4,
+      "blok_deseni": [
+        2,
+        2
+      ],
+      "subeler": [
+        "9A"
+      ],
+      "ogretmenler": [
+        "S011"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Fizik",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9A"
+      ],
+      "ogretmenler": [
+        "S009"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Kimya",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9A"
+      ],
+      "ogretmenler": [
+        "S013"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Biyoloji",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9A"
+      ],
+      "ogretmenler": [
+        "S003"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Tarih",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9A"
+      ],
+      "ogretmenler": [
+        "S018"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Cografya",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9A"
+      ],
+      "ogretmenler": [
+        "S004"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Din Kulturu",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9A"
+      ],
+      "ogretmenler": [
+        "S005"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Felsefe",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9A"
+      ],
+      "ogretmenler": [
+        "S008"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Almanca",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9A"
+      ],
+      "ogretmenler": [
+        "S001"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Beden Egitimi",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9A"
+      ],
+      "ogretmenler": [
+        "S002"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Muzik",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "9A"
+      ],
+      "ogretmenler": [
+        "S017"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Gorsel Sanatlar",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "9A"
+      ],
+      "ogretmenler": [
+        "S010"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Secmeli Matematik",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9A"
+      ],
+      "ogretmenler": [
+        "S015"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Matematik",
+      "haftalik_saat": 6,
+      "blok_deseni": [
+        2,
+        2,
+        2
+      ],
+      "subeler": [
+        "9B"
+      ],
+      "ogretmenler": [
+        "S015"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Turk Dili ve Edebiyati",
+      "haftalik_saat": 5,
+      "blok_deseni": [
+        2,
+        2,
+        1
+      ],
+      "subeler": [
+        "9B"
+      ],
+      "ogretmenler": [
+        "S007"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Ingilizce",
+      "haftalik_saat": 4,
+      "blok_deseni": [
+        2,
+        2
+      ],
+      "subeler": [
+        "9B"
+      ],
+      "ogretmenler": [
+        "S012"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Fizik",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9B"
+      ],
+      "ogretmenler": [
+        "S009"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Kimya",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9B"
+      ],
+      "ogretmenler": [
+        "S013"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Biyoloji",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9B"
+      ],
+      "ogretmenler": [
+        "S003"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Tarih",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9B"
+      ],
+      "ogretmenler": [
+        "S018"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Cografya",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9B"
+      ],
+      "ogretmenler": [
+        "S004"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Din Kulturu",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9B"
+      ],
+      "ogretmenler": [
+        "S005"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Felsefe",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9B"
+      ],
+      "ogretmenler": [
+        "S008"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Almanca",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9B"
+      ],
+      "ogretmenler": [
+        "S001"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Beden Egitimi",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9B"
+      ],
+      "ogretmenler": [
+        "S002"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Muzik",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "9B"
+      ],
+      "ogretmenler": [
+        "S017"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Gorsel Sanatlar",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "9B"
+      ],
+      "ogretmenler": [
+        "S010"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Secmeli Matematik",
+      "haftalik_saat": 2,
+      "blok_deseni": [
+        2
+      ],
+      "subeler": [
+        "9B"
+      ],
+      "ogretmenler": [
+        "S016"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Rehberlik",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "10A"
+      ],
+      "ogretmenler": [
+        "S014"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Rehberlik",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "10B"
+      ],
+      "ogretmenler": [
+        "S016"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Rehberlik",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "11A"
+      ],
+      "ogretmenler": [
+        "S015"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Rehberlik",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "12A"
+      ],
+      "ogretmenler": [
+        "S016"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Rehberlik",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "9A"
+      ],
+      "ogretmenler": [
+        "S014"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Rehberlik",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "9B"
+      ],
+      "ogretmenler": [
+        "S015"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    }
+  ],
+  "kural_ayarlari": {
+    "ogretmen_sube_gunluk_toplam": 3,
+    "ardisiklik_siniri": 2,
+    "pencere_sert_esigi": 4,
+    "pencereyi_bolmeyen_nedenler": [],
+    "b3_muaf_ogretmenler": [],
+    "sayisal_dilim_cezasi": [
+      0,
+      0,
+      0,
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "sanat_spor_dilim_cezasi": [
+      4,
+      3,
+      2,
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    "sure_butcesi_saniye": 60.0,
+    "ust_katman_sure_orani": 0.6,
+    "kapali_kurallar": []
+  }
+}
