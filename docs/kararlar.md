@@ -299,6 +299,14 @@ yaşıyor.
 Bilinçli feragat: karar sunucu sınıfı CPU'da ölçülen sürelere
 dayanıyor; okul donanımı payı wasm duman testinde ayrıca ölçülecek.
 
+Güncelleme (11 Tem 2026): her iki şart da KAPANDI, veri-yerel mimari
+KESİNLEŞTİ. (b) assumptions/unsat core wasm'da çalışıyor (Node +
+tarayıcı doğrulaması); (a) gerçek tarayıcı testi (kullanıcının Mac'i):
+43 şubelik sentetik okul TEK işçiyle 25,4 sn'de çözüldü — thread
+gereksinimi bile kalmadı. Beklenmedik bulgu: 8 işçi wasm'da tek
+işçiden yavaş (67 sn); tarayıcı varsayılanı numSearchWorkers=1
+olacak. Ayrıntı: docs/wasm-duman-testi.md EK bölümü.
+
 ## 21. Muafiyet basamağında sınırlı yinelemeli teşhis (10 Tem 2026)
 
 Karar 14'ün kapsam sınırı ("yalnız üretilen adaylar denenir, arama

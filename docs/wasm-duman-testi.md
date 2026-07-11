@@ -51,3 +51,30 @@ kodu porte edilmeden gerçek ölçüm — `CpSat.solve(Uint8Array)`).
 
 Python tarafı: deney/ içinden model kur + `model.ExportToFile(yol)`.
 Node tarafı: `CpSat.solve(new Uint8Array(readFileSync(yol)), {maxTimeInSeconds: N})`.
+
+## EK — Gerçek tarayıcı sonuçları (11 Tem 2026, kullanıcının Mac'i, Chrome)
+
+Ortam: deney/tarayici-testi kiti; crossOriginIsolated=true,
+SharedArrayBuffer açık, 8 çekirdek.
+
+| Test | Sonuç |
+|---|---|
+| assumptions (çözümsüz mikro, tanılama modu) | INFEASIBLE 0,3 sn, core boyutu 2 ✅ |
+| 43 şube fizibilite, TEK işçi | **OPTIMAL 25,4 sn** ✅ |
+| 43 şube fizibilite, 8 işçi | OPTIMAL 67,2 sn (tek işçiden YAVAŞ) |
+
+Okuma:
+
+1. **Karar 20'nin şartı (a) kapandı — beklenenden de iyi:** thread
+   pazarlığına gerek bile kalmadı; modern bir istemcide TEK işçi,
+   Kaşif-referans okulu 25 sn'de çözüyor (Kaşif: 18,5 dk). Sandbox'taki
+   olumsuz tek-işçi ölçümleri sunucu CPU'sunun tek-çekirdek zayıflığını
+   yansıtıyormuş; kullanıcı donanımı belirleyici ve lehte.
+2. **Çok işçi wasm'da ters tepiyor** (67 sn > 25 sn): wasm pthread
+   havuzunun ek yükü + verimlilik çekirdekleri muhtemel neden. Ürün
+   varsayılanı tarayıcıda numSearchWorkers=1 olmalı; bu aynı zamanda
+   determinizm gündemini de sadeleştirir (tek işçi + sabit seed,
+   koşudan koşuya çok daha kararlı).
+3. COOP/COEP barındırma sorusu yine geçerli (SharedArrayBuffer için)
+   ama artık performans-kritik değil; tek işçi SAB'siz de çalışır —
+   Aşama 3'te başlıksız (GitHub Pages) dağıtım yeniden değerlendirilebilir.
