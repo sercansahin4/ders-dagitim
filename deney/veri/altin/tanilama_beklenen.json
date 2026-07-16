@@ -1,0 +1,60 @@
+{
+  "iyelik": {
+    "Aylin Kaptan": "Aylin Kaptan'ın",
+    "Uydurma Deniz": "Uydurma Deniz'in",
+    "Mehmet Oğuz": "Mehmet Oğuz'un",
+    "Nur Gül": "Nur Gül'ün",
+    "Şükrü Öz": "Şükrü Öz'ün",
+    "Ali": "Ali'nin",
+    "Ayşe Arı": "Ayşe Arı'nın",
+    "Gökçe Sönmez": "Gökçe Sönmez'in",
+    "O06": "O06'un",
+    "Ümmü Sıdıka": "Ümmü Sıdıka'nın"
+  },
+  "gun_listeleri": {
+    "[1]": "pazartesi",
+    "[1, 2]": "pazartesi ve salı",
+    "[1, 3, 5]": "pazartesi, çarşamba ve cuma",
+    "[2, 4]": "salı ve perşembe",
+    "[5, 4, 3]": "çarşamba, perşembe ve cuma",
+    "[]": ""
+  },
+  "cekirdekler": {
+    "b3_ve_dis_okul": {
+      "cumleler": [
+        "Uydurma Deniz'in boş gün garantisi, pazartesi, salı, çarşamba ve perşembe günlerindeki dış okul görevi (başka okuldaki dersleri) ile birlikte sağlanamıyor."
+      ],
+      "teknik_referans": "Teknik referans: B3 (Uydurma Deniz)",
+      "neden_onerilmiyor": [
+        "Uydurma Deniz öğretmeninin dış okul görevi hiç öneri listesine alınmadı: bu, başka bir okula karşı verilmiş bir taahhüttür."
+      ]
+    },
+    "b4_tek_atama": {
+      "cumleler": [
+        "Matematik dersinin (9A) bloklarının her biri ayrı bir güne düşmeli: 1 ayrı gün gerekiyor; yalnız 1 uygun gün var (cuma)."
+      ],
+      "teknik_referans": "Teknik referans: B4 (Matematik, 9A)",
+      "neden_onerilmiyor": []
+    },
+    "b6_kapanissiz": {
+      "cumleler": [
+        "Uydurma Rehber için bir günde 4 saatten uzun boş bekleme oluşmaması kuralı sağlanamıyor: mevcut ders dağılımıyla bazı günlerde art arda çok uzun boşluk çıkıyor."
+      ],
+      "teknik_referans": "Teknik referans: B6 (Uydurma Rehber)",
+      "neden_onerilmiyor": []
+    },
+    "kapanis_tek_basina": {
+      "cumleler": [
+        "Uydurma Deniz'in pazartesi, salı, çarşamba ve perşembe günlerindeki dış okul görevi (başka okuldaki dersleri), bu programı imkânsız kılan nedenlerden biri."
+      ],
+      "teknik_referans": "",
+      "neden_onerilmiyor": [
+        "Uydurma Deniz öğretmeninin dış okul görevi hiç öneri listesine alınmadı: bu, başka bir okula karşı verilmiş bir taahhüttür."
+      ]
+    }
+  },
+  "muafiyet_metinleri": {
+    "tekil": "Boş gün garantisi kuralını Uydurma Deniz öğretmeni için kapatmayı değerlendirin: pazartesi, salı, çarşamba ve perşembe dış okulda olduğundan bu okulda tam boş gün bırakmak yapısal olarak mümkün görünmüyor; bu, çok okullu ağır yük profilinde bilinen bir durumdur (kural ayarlarına kayıt düşülerek uygulanır, diğer öğretmenlerin garantisi etkilenmez)",
+    "coklu": "Boş gün garantisi kuralını Uydurma Deniz ve Uydurma Rehber öğretmenleri için birlikte kapatmayı değerlendirin: dış okul yükleri nedeniyle bu okulda tam boş gün bırakmak yapısal olarak mümkün görünmüyor (Uydurma Deniz (pazartesi, salı, çarşamba ve perşembe dış okulda)); bu, çok okullu ağır yük profilinde bilinen bir durumdur (kural ayarlarına kayıt düşülerek uygulanır, diğer öğretmenlerin garantisi etkilenmez)"
+  }
+}
