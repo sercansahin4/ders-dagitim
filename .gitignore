@@ -86,3 +86,6 @@ okul_anonim*
 node_modules/
 *.pb
 package-lock.json
+
+# TS çözüm köprüsü: npm test üretir, ts_denetle.py okur; depoya girmez.
+deney/veri/altin/ts_cozumler/

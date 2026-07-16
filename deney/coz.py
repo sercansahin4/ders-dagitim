@@ -110,7 +110,7 @@ class KademeliSonuc:
     kural_cezalari: dict[str, int] = field(default_factory=dict)
 
 
-def kademeli_coz(okul: Okul) -> KademeliSonuc:
+def kademeli_coz(okul: Okul, yalniz_gecis1: bool = False) -> KademeliSonuc:
     """Modeli HIZLI modda kurar, sert kuralları ve C1-C8 ceza terimlerini ekler, iki geçişli kademeli çözümü çalıştırır.
 
     Onaylı uygulama kararları: katman içi öncelik baskınlık ağırlığıyla
@@ -118,6 +118,12 @@ def kademeli_coz(okul: Okul) -> KademeliSonuc:
     üst/alt geçişlere kural_ayarlari.ust_katman_sure_orani ile bölünür
     (Geçiş 1 erken biterse artan süre Geçiş 2'ye devreder), cezalar
     çözüm anında etiketli değişkenlerden toplanır.
+
+    yalniz_gecis1=True: Geçiş 2 hiç koşulmaz; sonuç Geçiş 1 çözümüdür
+    (durum_alt=None, gecis2_kullanildi=False). Altın üretici bunu,
+    Geçiş 2'si OPTIMAL kanıtlanamayan tam-kurallı fixture'larda yalnız
+    kilit değerini (Geçiş 1 OPTIMAL amacı) sabitlemek için kullanır
+    (bkz. kararlar.md Karar 23); ürün akışında kullanılmaz.
     """
     km = kur_temel_degiskenler(okul)
     sert_kurallari_uygula(km)
@@ -154,6 +160,22 @@ def kademeli_coz(okul: Okul) -> KademeliSonuc:
                              terimler=terimler, agirliklar=agirliklar)
 
     kilit_degeri = round(cozucu_ust.ObjectiveValue())
+
+    if yalniz_gecis1:
+        kural_cezalari = {
+            kural: sum(t.katsayi * cozucu_ust.Value(t.degisken) for t in kural_terimleri)
+            for kural, kural_terimleri in terimler.items()
+        }
+        return KademeliSonuc(
+            yerlesim=_yerlesim_cikar(okul, km, cozucu_ust),
+            durum_ust=durum_ust,
+            ust_katman_cezasi=kilit_degeri,
+            kilit_degeri=kilit_degeri,
+            sure_ust=sure_ust,
+            terimler=terimler,
+            agirliklar=agirliklar,
+            kural_cezalari=kural_cezalari,
+        )
 
     # Kilit (<=) + Geçiş 1 çözümü Geçiş 2'ye başlangıç ipucu olarak verilir
     # (kilidi zaten sağlayan hazır bir çözüm: Geçiş 2 hiç değilse onunla başlar).

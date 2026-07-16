@@ -1,0 +1,139 @@
+{
+  "c1_tercih_pin": {
+    "girdi": "veri/altin/cozucu_girdiler/c1_tercih_pin.json",
+    "acik_kurallar": [
+      "C1"
+    ],
+    "durum_ust": "OPTIMAL",
+    "durum_alt": "OPTIMAL",
+    "kilit_degeri": 1,
+    "alt_katman_cezasi": 0,
+    "gecis2_altin_mi": true
+  },
+  "c2_gunluk_pin": {
+    "girdi": "veri/altin/cozucu_girdiler/c2_gunluk_pin.json",
+    "acik_kurallar": [
+      "C2"
+    ],
+    "durum_ust": "OPTIMAL",
+    "durum_alt": "OPTIMAL",
+    "kilit_degeri": 1,
+    "alt_katman_cezasi": 0,
+    "gecis2_altin_mi": true
+  },
+  "c3_pencere_pin": {
+    "girdi": "veri/altin/cozucu_girdiler/c3_pencere_pin.json",
+    "acik_kurallar": [
+      "C3"
+    ],
+    "durum_ust": "OPTIMAL",
+    "durum_alt": "OPTIMAL",
+    "kilit_degeri": 1,
+    "alt_katman_cezasi": 0,
+    "gecis2_altin_mi": true
+  },
+  "c4_tek_saat_pin": {
+    "girdi": "veri/altin/cozucu_girdiler/c4_tek_saat_pin.json",
+    "acik_kurallar": [
+      "C4"
+    ],
+    "durum_ust": "OPTIMAL",
+    "durum_alt": "OPTIMAL",
+    "kilit_degeri": 0,
+    "alt_katman_cezasi": 1,
+    "gecis2_altin_mi": true
+  },
+  "c5_zincir_pin": {
+    "girdi": "veri/altin/cozucu_girdiler/c5_zincir_pin.json",
+    "acik_kurallar": [
+      "C5"
+    ],
+    "durum_ust": "OPTIMAL",
+    "durum_alt": "OPTIMAL",
+    "kilit_degeri": 0,
+    "alt_katman_cezasi": 2,
+    "gecis2_altin_mi": true
+  },
+  "c6_pencere_pin": {
+    "girdi": "veri/altin/cozucu_girdiler/c6_pencere_pin.json",
+    "acik_kurallar": [
+      "C6"
+    ],
+    "durum_ust": "OPTIMAL",
+    "durum_alt": "OPTIMAL",
+    "kilit_degeri": 0,
+    "alt_katman_cezasi": 3,
+    "gecis2_altin_mi": true
+  },
+  "c7_kategori_pin": {
+    "girdi": "veri/altin/cozucu_girdiler/c7_kategori_pin.json",
+    "acik_kurallar": [
+      "C7"
+    ],
+    "durum_ust": "OPTIMAL",
+    "durum_alt": "OPTIMAL",
+    "kilit_degeri": 0,
+    "alt_katman_cezasi": 1,
+    "gecis2_altin_mi": true
+  },
+  "c8_dilim_pin": {
+    "girdi": "veri/altin/cozucu_girdiler/c8_dilim_pin.json",
+    "acik_kurallar": [
+      "C8"
+    ],
+    "durum_ust": "OPTIMAL",
+    "durum_alt": "OPTIMAL",
+    "kilit_degeri": 0,
+    "alt_katman_cezasi": 7,
+    "gecis2_altin_mi": true
+  },
+  "ust_karma_pin": {
+    "girdi": "veri/altin/cozucu_girdiler/ust_karma_pin.json",
+    "acik_kurallar": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "durum_ust": "OPTIMAL",
+    "durum_alt": "OPTIMAL",
+    "kilit_degeri": 17749,
+    "alt_katman_cezasi": 0,
+    "gecis2_altin_mi": true
+  },
+  "tam_kurallar": {
+    "girdi": "veri/altin/cozucu_girdiler/tam_kurallar.json",
+    "acik_kurallar": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8"
+    ],
+    "durum_ust": "OPTIMAL",
+    "durum_alt": null,
+    "kilit_degeri": 0,
+    "alt_katman_cezasi": null,
+    "gecis2_altin_mi": false
+  },
+  "sabit_cakisma_unsat": {
+    "girdi": "veri/altin/cozucu_girdiler/sabit_cakisma_unsat.json",
+    "acik_kurallar": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8"
+    ],
+    "durum_ust": "INFEASIBLE",
+    "durum_alt": null,
+    "kilit_degeri": null,
+    "alt_katman_cezasi": null,
+    "gecis2_altin_mi": false
+  }
+}
