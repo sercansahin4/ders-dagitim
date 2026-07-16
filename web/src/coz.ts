@@ -87,6 +87,142 @@ function yerlesimCikar(okul: Okul, km: KisitModeli, cozucu: CpSolver): Yerlesim 
   return yerlesim;
 }
 
+/**
+ * Çözücünün ürettiği Yerleşimi, çözücüden tamamen bağımsız düz kurallarla
+ * denetler (coz.py cozum_denetle ikizi; mesajlar karakter-karakter aynı).
+ *
+ * Dönen listede "[muaf]" önekli satırlar ihlal değil bilgi notudur (Karar 17).
+ */
+export function cozumDenetle(okul: Okul, yerlesim: Yerlesim): string[] {
+  const sorunlar: string[] = [];
+  const anahtar = (g: number, s: number) => `${g}|${s}`;
+
+  const ogretmenDoluluk = new Map<string, Map<string, string[]>>(
+    okul.ogretmenler.map((o) => [o.ad, new Map()]),
+  );
+  const subeDoluluk = new Map<string, Map<string, string[]>>(
+    okul.subeler.map((s) => [s.ad, new Map()]),
+  );
+
+  for (const girdi of yerlesim.girdiler) {
+    const atama = okul.ders_atamalari[girdi.ders_atamasi_index]!;
+    for (let s = girdi.baslangic_dilim; s < girdi.baslangic_dilim + girdi.sure; s++) {
+      for (const ogretmenAd of atama.ogretmenler) {
+        const d = ogretmenDoluluk.get(ogretmenAd)!;
+        if (!d.has(anahtar(girdi.gun, s))) d.set(anahtar(girdi.gun, s), []);
+        d.get(anahtar(girdi.gun, s))!.push(atama.ders);
+      }
+      for (const subeAd of atama.subeler) {
+        const d = subeDoluluk.get(subeAd)!;
+        if (!d.has(anahtar(girdi.gun, s))) d.set(anahtar(girdi.gun, s), []);
+        d.get(anahtar(girdi.gun, s))!.push(atama.ders);
+      }
+    }
+  }
+
+  // 1. Çakışma sayısı 0 olmalı (öğretmen ve şube ekseninde).
+  for (const [ogretmenAd, doluluk] of ogretmenDoluluk) {
+    for (const [gs, dersler] of doluluk) {
+      if (dersler.length > 1) {
+        const [g, s] = gs.split("|").map(Number) as [number, number];
+        sorunlar.push(
+          `${ogretmenAd}: ${gunAdi(g)} ${s}. dilimde ${dersler.length} ders ` +
+            `çakışıyor (${dersler.join(", ")}).`,
+        );
+      }
+    }
+  }
+  for (const [subeAd, doluluk] of subeDoluluk) {
+    for (const [gs, dersler] of doluluk) {
+      if (dersler.length > 1) {
+        const [g, s] = gs.split("|").map(Number) as [number, number];
+        sorunlar.push(
+          `${subeAd} şubesi: ${gunAdi(g)} ${s}. dilimde ${dersler.length} ders ` +
+            `çakışıyor (${dersler.join(", ")}).`,
+        );
+      }
+    }
+  }
+
+  // 2. Her öğretmende, dışOkul kapanışı olmayan günler arasında en az bir
+  //    tam boş gün olmalı (B3). Muaf öğretmen (Karar 17) ihlal üretmez.
+  for (const ogretmen of okul.ogretmenler) {
+    const disOkulGunleri = new Set(
+      ogretmen.kapanislar.filter((k) => k.neden === "DIS_OKUL").map((k) => k.gun),
+    );
+    const calisilanGunler = new Set(
+      [...ogretmenDoluluk.get(ogretmen.ad)!.keys()].map((gs) => Number(gs.split("|")[0])),
+    );
+    const uygunGunler = Array.from(
+      { length: okul.izgara.gun_sayisi },
+      (_, i) => i + 1,
+    ).filter((g) => !disOkulGunleri.has(g));
+    const bosGunVar = uygunGunler.some((g) => !calisilanGunler.has(g));
+    if (okul.kural_ayarlari.b3_muaf_ogretmenler.has(ogretmen.ad)) {
+      const durumNotu = bosGunVar ? "tam boş günü yine de var" : "tam boş günü yok";
+      sorunlar.push(
+        `[muaf] ${ogretmen.ad}: B3 kontrolünden muaf ` +
+          `(kural_ayarlari.b3_muaf_ogretmenler); ${durumNotu}, ` +
+          `ihlal sayılmadı.`,
+      );
+    } else if (!bosGunVar) {
+      sorunlar.push(
+        `${ogretmen.ad}: dışOkul kapanışı olmayan hiçbir günde tam boş gün ` +
+          `yok (B3 ihlali).`,
+      );
+    }
+  }
+
+  // 3. Kapanış ihlali: kapalı dilime ders yerleşmiş mi?
+  for (const ogretmen of okul.ogretmenler) {
+    const kapali = new Set(
+      ogretmen.kapanislar.flatMap((k) => k.dilimler.map((d) => anahtar(k.gun, d))),
+    );
+    for (const gs of ogretmenDoluluk.get(ogretmen.ad)!.keys()) {
+      if (kapali.has(gs)) {
+        const [g, s] = gs.split("|").map(Number) as [number, number];
+        sorunlar.push(
+          `${ogretmen.ad}: ${gunAdi(g)} ${s}. dilim kapalıyken (kapanış) ` +
+            `ders yerleşmiş (B2 ihlali).`,
+        );
+      }
+    }
+  }
+
+  // 4. Her ders ataması için aynı güne en fazla bir blok düşmeli (B4).
+  const atamaGunleri = new Map<number, number[]>();
+  for (const girdi of yerlesim.girdiler) {
+    if (!atamaGunleri.has(girdi.ders_atamasi_index)) {
+      atamaGunleri.set(girdi.ders_atamasi_index, []);
+    }
+    atamaGunleri.get(girdi.ders_atamasi_index)!.push(girdi.gun);
+  }
+  for (const [aIdx, gunler] of atamaGunleri) {
+    if (gunler.length !== new Set(gunler).size) {
+      const atama = okul.ders_atamalari[aIdx]!;
+      sorunlar.push(
+        `${atama.ders} (${atama.subeler.join(", ")}): aynı güne birden ` +
+          `fazla blok düşmüş (B4 ihlali).`,
+      );
+    }
+  }
+
+  // 5. Yerleşen dilim toplamı haftalık ders saatine eşit olmalı.
+  okul.ders_atamalari.forEach((atama, aIdx) => {
+    const toplamSure = yerlesim.girdiler
+      .filter((girdi) => girdi.ders_atamasi_index === aIdx)
+      .reduce((t, girdi) => t + girdi.sure, 0);
+    if (toplamSure !== atama.haftalik_saat) {
+      sorunlar.push(
+        `${atama.ders} (${atama.subeler.join(", ")}): yerleşen dilim toplamı ` +
+          `(${toplamSure}) haftalık saatle (${atama.haftalik_saat}) eşleşmiyor.`,
+      );
+    }
+  });
+
+  return sorunlar;
+}
+
 /** coz() sonucu: çözücü, kısıt modeli, yerleşim (ya da null) ve durum. */
 export interface FizibiliteSonucu {
   cozucu: CpSolver;

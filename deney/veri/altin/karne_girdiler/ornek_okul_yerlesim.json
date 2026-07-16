@@ -1,0 +1,310 @@
+{
+  "girdiler": [
+    {
+      "ders_atamasi_index": 0,
+      "gun": 1,
+      "baslangic_dilim": 1,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 0,
+      "gun": 3,
+      "baslangic_dilim": 1,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 1,
+      "gun": 2,
+      "baslangic_dilim": 1,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 2,
+      "gun": 4,
+      "baslangic_dilim": 1,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 3,
+      "gun": 5,
+      "baslangic_dilim": 1,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 4,
+      "gun": 4,
+      "baslangic_dilim": 7,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 4,
+      "gun": 5,
+      "baslangic_dilim": 3,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 4,
+      "gun": 1,
+      "baslangic_dilim": 7,
+      "sure": 1
+    },
+    {
+      "ders_atamasi_index": 5,
+      "gun": 5,
+      "baslangic_dilim": 7,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 6,
+      "gun": 2,
+      "baslangic_dilim": 4,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 7,
+      "gun": 3,
+      "baslangic_dilim": 3,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 8,
+      "gun": 2,
+      "baslangic_dilim": 7,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 8,
+      "gun": 4,
+      "baslangic_dilim": 4,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 9,
+      "gun": 3,
+      "baslangic_dilim": 5,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 10,
+      "gun": 5,
+      "baslangic_dilim": 5,
+      "sure": 1
+    },
+    {
+      "ders_atamasi_index": 11,
+      "gun": 2,
+      "baslangic_dilim": 6,
+      "sure": 1
+    },
+    {
+      "ders_atamasi_index": 12,
+      "gun": 4,
+      "baslangic_dilim": 3,
+      "sure": 1
+    },
+    {
+      "ders_atamasi_index": 13,
+      "gun": 3,
+      "baslangic_dilim": 3,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 13,
+      "gun": 4,
+      "baslangic_dilim": 1,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 14,
+      "gun": 5,
+      "baslangic_dilim": 1,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 15,
+      "gun": 2,
+      "baslangic_dilim": 3,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 16,
+      "gun": 1,
+      "baslangic_dilim": 1,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 17,
+      "gun": 1,
+      "baslangic_dilim": 3,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 17,
+      "gun": 3,
+      "baslangic_dilim": 1,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 17,
+      "gun": 5,
+      "baslangic_dilim": 6,
+      "sure": 1
+    },
+    {
+      "ders_atamasi_index": 18,
+      "gun": 2,
+      "baslangic_dilim": 6,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 19,
+      "gun": 3,
+      "baslangic_dilim": 5,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 20,
+      "gun": 4,
+      "baslangic_dilim": 3,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 21,
+      "gun": 3,
+      "baslangic_dilim": 7,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 21,
+      "gun": 4,
+      "baslangic_dilim": 6,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 22,
+      "gun": 5,
+      "baslangic_dilim": 7,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 23,
+      "gun": 2,
+      "baslangic_dilim": 8,
+      "sure": 1
+    },
+    {
+      "ders_atamasi_index": 24,
+      "gun": 2,
+      "baslangic_dilim": 5,
+      "sure": 1
+    },
+    {
+      "ders_atamasi_index": 25,
+      "gun": 5,
+      "baslangic_dilim": 5,
+      "sure": 1
+    },
+    {
+      "ders_atamasi_index": 26,
+      "gun": 1,
+      "baslangic_dilim": 3,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 26,
+      "gun": 2,
+      "baslangic_dilim": 1,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 26,
+      "gun": 4,
+      "baslangic_dilim": 4,
+      "sure": 1
+    },
+    {
+      "ders_atamasi_index": 27,
+      "gun": 5,
+      "baslangic_dilim": 3,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 28,
+      "gun": 3,
+      "baslangic_dilim": 1,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 29,
+      "gun": 2,
+      "baslangic_dilim": 4,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 30,
+      "gun": 1,
+      "baslangic_dilim": 5,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 30,
+      "gun": 5,
+      "baslangic_dilim": 7,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 31,
+      "gun": 3,
+      "baslangic_dilim": 3,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 32,
+      "gun": 1,
+      "baslangic_dilim": 1,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 33,
+      "gun": 4,
+      "baslangic_dilim": 1,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 34,
+      "gun": 4,
+      "baslangic_dilim": 7,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 34,
+      "gun": 2,
+      "baslangic_dilim": 3,
+      "sure": 1
+    },
+    {
+      "ders_atamasi_index": 35,
+      "gun": 3,
+      "baslangic_dilim": 7,
+      "sure": 2
+    },
+    {
+      "ders_atamasi_index": 36,
+      "gun": 5,
+      "baslangic_dilim": 6,
+      "sure": 1
+    },
+    {
+      "ders_atamasi_index": 37,
+      "gun": 2,
+      "baslangic_dilim": 7,
+      "sure": 1
+    },
+    {
+      "ders_atamasi_index": 38,
+      "gun": 3,
+      "baslangic_dilim": 5,
+      "sure": 1
+    }
+  ]
+}

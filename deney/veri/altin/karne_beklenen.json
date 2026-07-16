@@ -1,0 +1,86 @@
+{
+  "elyapimi_ihlaller": {
+    "kural_toplamlari": {
+      "C1": 1,
+      "C2": 4,
+      "C3": 1,
+      "C4": 2,
+      "C5": 2,
+      "C6": 5,
+      "C7": 1,
+      "C8": 11
+    },
+    "satirlar": {
+      "C1": [
+        "Uydurma Ayla: tercih ettiği boş gün (Pazartesi) ders içeriyor."
+      ],
+      "C2": [
+        "Uydurma Ayla -> 9A: Pazartesi günü 6 saat (sınır 3).",
+        "Uydurma Baran -> 9A: Çarşamba günü 4 saat (sınır 3)."
+      ],
+      "C3": [
+        "Uydurma Baran: Çarşamba 3-5. dilimler 3 saatlik pencere."
+      ],
+      "C4": [
+        "Uydurma Ayla: Salı günü yalnız 1 saat ders.",
+        "Uydurma Rehber: Pazartesi günü yalnız 1 saat ders."
+      ],
+      "C5": [
+        "Uydurma Ayla -> 9A: Pazartesi 1-3. dilimler blok-aşan 3 saatlik zincir.",
+        "Uydurma Ayla -> 9A: Pazartesi 2-4. dilimler blok-aşan 3 saatlik zincir."
+      ],
+      "C6": [
+        "Uydurma Ayla: Pazartesi 5. dilim pencere.",
+        "Uydurma Ayla: Pazartesi 6. dilim pencere.",
+        "Uydurma Baran: Çarşamba 3. dilim pencere.",
+        "Uydurma Baran: Çarşamba 4. dilim pencere.",
+        "Uydurma Baran: Çarşamba 5. dilim pencere."
+      ],
+      "C7": [
+        "9A: Pazartesi 2-3. dilimlerde aynı kategoriden (SAYISAL) ardışık dersler: Matematik + Fizik."
+      ],
+      "C8": [
+        "Matematik (9A): Pazartesi 7. dilim (ceza 3).",
+        "Matematik (9A): Pazartesi 8. dilim (ceza 4).",
+        "Matematik (9B): Salı 8. dilim (ceza 4)."
+      ]
+    },
+    "karne_metni": "=== Kalite karnesi: ceza kaynak dökümü ===\n\nC1 -- Boş gün tercihi karşılanmayan öğretmenler: toplam 1\n  - Uydurma Ayla: tercih ettiği boş gün (Pazartesi) ders içeriyor.\n\nC2 -- Öğretmen×şube günlük toplam sınırı aşımı: toplam 4\n  - Uydurma Ayla -> 9A: Pazartesi günü 6 saat (sınır 3).\n  - Uydurma Baran -> 9A: Çarşamba günü 4 saat (sınır 3).\n\nC3 -- 3 saatlik pencereler: toplam 1\n  - Uydurma Baran: Çarşamba 3-5. dilimler 3 saatlik pencere.\n\nC4 -- Tek saatlik günler: toplam 2\n  - Uydurma Ayla: Salı günü yalnız 1 saat ders.\n  - Uydurma Rehber: Pazartesi günü yalnız 1 saat ders.\n\nC5 -- Öğretmen×şube ardışıklık sınırı aşımı: toplam 2\n  - Uydurma Ayla -> 9A: Pazartesi 1-3. dilimler blok-aşan 3 saatlik zincir.\n  - Uydurma Ayla -> 9A: Pazartesi 2-4. dilimler blok-aşan 3 saatlik zincir.\n\nC6 -- Pencere dilimleri (1-2 saatlik bekleme): toplam 5\n  - Uydurma Ayla: Pazartesi 5. dilim pencere.\n  - Uydurma Ayla: Pazartesi 6. dilim pencere.\n  - Uydurma Baran: Çarşamba 3. dilim pencere.\n  - Uydurma Baran: Çarşamba 4. dilim pencere.\n  - Uydurma Baran: Çarşamba 5. dilim pencere.\n\nC7 -- Aynı kategoriden farklı dersler ardışık: toplam 1\n  - 9A: Pazartesi 2-3. dilimlerde aynı kategoriden (SAYISAL) ardışık dersler: Matematik + Fizik.\n\nC8 -- Dilim tercihi ihlali (sayısal sabaha / sanat-spor sona): toplam 11\n  - Matematik (9A): Pazartesi 7. dilim (ceza 3).\n  - Matematik (9A): Pazartesi 8. dilim (ceza 4).\n  - Matematik (9B): Salı 8. dilim (ceza 4).",
+    "denetci": [
+      "9A şubesi: Pazartesi 4. dilimde 2 ders çakışıyor (Fizik, Rehberlik).",
+      "[muaf] Uydurma Rehber: B3 kontrolünden muaf (kural_ayarlari.b3_muaf_ogretmenler); tam boş günü yine de var, ihlal sayılmadı.",
+      "Uydurma Ayla: Cuma 1. dilim kapalıyken (kapanış) ders yerleşmiş (B2 ihlali).",
+      "Uydurma Ayla: Cuma 2. dilim kapalıyken (kapanış) ders yerleşmiş (B2 ihlali).",
+      "Matematik (9A): aynı güne birden fazla blok düşmüş (B4 ihlali).",
+      "Edebiyat (9A): yerleşen dilim toplamı (4) haftalık saatle (2) eşleşmiyor."
+    ]
+  },
+  "ornek_okul_cozum": {
+    "kural_toplamlari": {
+      "C1": 0,
+      "C2": 0,
+      "C3": 0,
+      "C4": 1,
+      "C5": 0,
+      "C6": 0,
+      "C7": 0,
+      "C8": 1
+    },
+    "satirlar": {
+      "C1": [],
+      "C2": [],
+      "C3": [],
+      "C4": [
+        "İlker Bulut: Salı günü yalnız 1 saat ders."
+      ],
+      "C5": [],
+      "C6": [],
+      "C7": [],
+      "C8": [
+        "Biyoloji (10-A): Salı 5. dilim (ceza 1)."
+      ]
+    },
+    "karne_metni": "=== Kalite karnesi: ceza kaynak dökümü ===\n\nC1 -- Boş gün tercihi karşılanmayan öğretmenler: toplam 0\n  İhlal yok.\n\nC2 -- Öğretmen×şube günlük toplam sınırı aşımı: toplam 0\n  İhlal yok.\n\nC3 -- 3 saatlik pencereler: toplam 0\n  İhlal yok.\n\nC4 -- Tek saatlik günler: toplam 1\n  - İlker Bulut: Salı günü yalnız 1 saat ders.\n\nC5 -- Öğretmen×şube ardışıklık sınırı aşımı: toplam 0\n  İhlal yok.\n\nC6 -- Pencere dilimleri (1-2 saatlik bekleme): toplam 0\n  İhlal yok.\n\nC7 -- Aynı kategoriden farklı dersler ardışık: toplam 0\n  İhlal yok.\n\nC8 -- Dilim tercihi ihlali (sayısal sabaha / sanat-spor sona): toplam 1\n  - Biyoloji (10-A): Salı 5. dilim (ceza 1).",
+    "denetci": []
+  }
+}

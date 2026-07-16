@@ -277,6 +277,23 @@ export function okulYukleMetinden(metin: string): Okul {
   return okulFromDict(JSON.parse(metin) as JsonSozluk);
 }
 
+/** JSON sözlüğünden bir Yerlesim nesnesi kurar (model.py yerlesim_from_dict ikizi). */
+export function yerlesimFromDict(veri: JsonSozluk): Yerlesim {
+  return {
+    girdiler: ((veri["girdiler"] as JsonSozluk[] | undefined) ?? []).map((g) => ({
+      ders_atamasi_index: g["ders_atamasi_index"] as number,
+      gun: g["gun"] as number,
+      baslangic_dilim: g["baslangic_dilim"] as number,
+      sure: g["sure"] as number,
+    })),
+  };
+}
+
+/** JSON metninden bir Yerlesim nesnesi kurar (model.py yerlesim_yukle'nin tarayıcı karşılığı). */
+export function yerlesimYukleMetinden(metin: string): Yerlesim {
+  return yerlesimFromDict(JSON.parse(metin) as JsonSozluk);
+}
+
 // --- A-katmanı doğrulama (kisit-envanteri.md §4-A) ------------------------
 // Her fonksiyon tek bir tutarlılık kuralını kontrol eder ve ihlalde
 // eyleme dönük Türkçe mesajlar döndürür; ihlal yoksa boş liste döner.
