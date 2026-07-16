@@ -9,9 +9,10 @@ karnıyarık) baştan Türkçe kurulur; çözüm bulamadığında nedenini
 eyleme dönük Türkçe cümlelerle açıklar. Veri cihazdan çıkmaz.
 
 **Durum:** Erken geliştirme (Hafta 2/8) — mimari kesinleşti (veri-yerel,
-tarayıcı-içi wasm; Karar 20); TypeScript çevirisi altın testlerle başladı
-(Karar 22).
-Henüz kullanılabilir sürüm yok.
+tarayıcı-içi wasm; Karar 20); TypeScript çevirisi altın testlerle
+ilerliyor (Karar 22): veri modeli + A-katmanı + kısıt modeli (B/C) +
+kademeli çözücü çevrildi, çözücü eşdeğerliği kural-altkümeli altınlarla
+denetleniyor (Karar 23). Henüz kullanılabilir sürüm yok.
 
 **Belgeler:** docs/ altında emsal analizi, kısıt envanteri,
 adlandırma sözleşmesi ve karar kaydı.

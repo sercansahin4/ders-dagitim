@@ -354,7 +354,9 @@ disiplinle karşılanır:
 - **Kapsam kademeli genişler:** bugün A-katmanı (14 fixture, 8 kontrolün
   tamamı). Çözücü çevirisi geldiğinde ölçüt genişler: iki kademenin
   amaç değerleri eşit + TS çözümü Python bağımsız denetçisinden
-  (karne.py) geçer. Proto-düzeyi karşılaştırma bilinçli reddedildi:
+  (karne.py) geçer. Güncelleme (12 Tem 2026): "amaç değerleri eşit"
+  ölçütünün genel fixture'da uygulanamadığı ölçüldü; uygulanabilir
+  biçimi Karar 23'tür (kural-altkümeli altınlar). Proto-düzeyi karşılaştırma bilinçli reddedildi:
   değişken/kısıt sıralaması farkı sahte alarm üretir, davranışsal
   eşdeğerlik ürünün umursadığı şeydir.
 - **Araç seti asgari tutuldu:** web/ şimdilik yalnız TypeScript
@@ -362,3 +364,54 @@ disiplinle karşılanır:
   tarayıcı testindeki sürüm) çözücü çevirisiyle eklenir. Arayüz
   çerçevesi kararı (React vs alternatifler) arayüz fazı başında ayrı
   bir karar kaydıyla verilecek.
+
+## 23. Çözücü altınları: kural-altkümeli fixture yaklaşımı (12 Tem 2026)
+
+Karar 22'nin çözücü ölçütü ("iki kademenin amaç değerleri eşit")
+uygulamaya geçirilirken şu ölçüldü: baskınlık ağırlıkları (Karar 18)
+tam kural kümesinde 1 -> ~10^10 aralığına yayılıyor ve CP-SAT'ın alt
+sınır kanıtını pratikte imkânsızlaştırıyor -- Geçiş 2, 2 şubelik
+sentetik okulda bile 25 sn'de OPTIMAL kanıtlayamıyor (bound negatif
+kalıyor); örnek okulda 38 sn'de gap kapanmıyor. Bütçeyle kesilen
+FEASIBLE'ın amaç değeri makineye/süreye bağlıdır; altın eşitlik yalnız
+OPTIMAL'de tanımlıdır. Bu donanım sorunu değil, ağırlık şemasının
+yapısal sonucudur.
+
+Karar (kullanıcı onayı 12 Tem 2026): altın ölçüt kural-altkümeli
+fixture'larla uygulanır; davranış değişikliği yoktur.
+
+- **Tek-kural fixture'ları (8 adet):** her C kuralı için yalnız o kural
+  açık (kapali_kurallar verisiyle; ağırlık=1) bir fixture. sabit_dilimler
+  (B8) pinleri cezayı yapısal olarak zorlar ki altın değer 0 olmasın
+  (C1=1, C2=1, C3=1, C4=1, C5=2, C6=3, C7=1, C8=7). İki geçiş de
+  saniyeler içinde OPTIMAL kanıtlanır; amaç değerleri makineden
+  bağımsız altındır.
+- **ust_karma_pin:** C1+C2+C3 birlikte -- baskınlık ağırlığı HESABININ
+  kendisi altın eşitliğe girer (kilit 17749).
+- **tam_kurallar:** tüm kurallar açık; yalnız Geçiş 1 amacı (OPTIMAL
+  kanıtlanabiliyor) altındır. Üretici bunun için kademeli_coz'a eklenen
+  yalniz_gecis1 bayrağını kullanır (ürün akışında kullanılmaz).
+  TS tarafı tam kademeli koşar; Geçiş 2 çözümü amaçla değil köprüyle
+  denetlenir.
+- **sabit_cakisma_unsat:** INFEASIBLE durum eşlemesinin tanığı.
+- **Köprü (amaç eşitliğinin tamamlayıcısı):** npm test, çözüm üreten her
+  fixture için TS çözümünü veri/altin/ts_cozumler/ altına yazar
+  (.gitignore'da); deney/ts_denetle.py bu çözümleri çözücüden bağımsız
+  denetler: sert kurallar (coz.cozum_denetle) + karne mutabakatı
+  (kisitlar.ts <-> karne.py ikizi) + kilit koruması. Tam doğrulama =
+  pytest + npm test + ts_denetle.py (akış web/README.md'de).
+- **Üretici disiplini:** bütçe içinde OPTIMAL kanıtlanamayan fixture
+  üretici hatasıdır (yüksek sesle durur); sessizce FEASIBLE altın
+  yazmak yasaktır. Pin tasarımında simetri kırma etkileşimine dikkat:
+  eşit uzunlukta blokların ilki son güne pinlenemez (tanılama motoru
+  buldu; c1 bu yüzden tek bloklu Rehberlik'i pinler).
+
+Bekçi kanıtı: kisitlar.ts'te kasıtlı tek-karakter sapma (C7 çift
+eşiği 2->1) c7 altınını kırdı; geri alınca 12/12 yeşile döndü.
+
+İleriye dönük seçenek (karar verilmedi, İleride adayı): katman içi
+tek ağırlıklı geçiş yerine kural başına ardışık gerçek leksikografik
+çözüm (8-9 küçük amaç) -- her adım OPTIMAL kanıtlanabilir olur, altın
+eşitlik tam kural kümesine genişler ve ürün "kanıtlı en iyi" diyebilir.
+Maliyeti: Python referansında davranış değişikliği + geçiş başına
+bütçe yönetimi; ayrı karar kaydı gerektirir.
