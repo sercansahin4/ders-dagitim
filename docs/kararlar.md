@@ -415,3 +415,21 @@ tek ağırlıklı geçiş yerine kural başına ardışık gerçek leksikografik
 eşitlik tam kural kümesine genişler ve ürün "kanıtlı en iyi" diyebilir.
 Maliyeti: Python referansında davranış değişikliği + geçiş başına
 bütçe yönetimi; ayrı karar kaydı gerektirir.
+
+## 24. Arayüz çerçevesi: React + Vite + TypeScript strict (19 Tem 2026)
+Arayüz fazı React 18 + Vite + TypeScript (strict) ile kurulur.
+Gerekçe: kod yapay zekâ ile üretilip kullanıcı tarafından okunarak
+yönetildiğinden belirleyici kriterler alışılmıştan farklıdır:
+(a) yapay zekâ üretim kalitesi/tutarlılığı en yüksek çerçeve;
+(b) en geniş gönüllü katkıcı havuzu; (c) API istikrarı (hooks
+2019'dan beri kırıcı değişiklik yok). Değerlendirilen alternatifler:
+Svelte (modeller 4/5 sözdizimini karıştırıyor, yakın tarihli kırıcı
+sürüm geçmişi), Vue (iki API stili çıktı tutarsızlığı), saf TS
+(form-ağır veri girişinde elle durum yönetimi = en hatalı üretim
+türü). Bilinçli feragat: bağımlılık ağırlığı + JSX okuma yükü.
+Sınırlar: durum yönetimi ve bileşen/UI kütüphanesi ŞİMDİ EKLENMEZ;
+ihtiyaç kanıtlanırsa ayrı kararla gelir ("önce somut").
+Teknik bağlayıcılar: çözücü Web Worker içinde koşar (arayüz donmaz);
+tek işçi varsayılanı (Karar 20) SharedArrayBuffer/COOP-COEP
+ihtiyacını muhtemelen kaldırır — iskeletin İLK doğrulama maddesidir
+(statik barındırma yolunu açar).

@@ -8,11 +8,12 @@ Türk okul yöneticisinin kavramlarıyla (şube, ders yükü, blok,
 karnıyarık) baştan Türkçe kurulur; çözüm bulamadığında nedenini
 eyleme dönük Türkçe cümlelerle açıklar. Veri cihazdan çıkmaz.
 
-**Durum:** Erken geliştirme (Hafta 2/8) — mimari kesinleşti (veri-yerel,
-tarayıcı-içi wasm; Karar 20); TypeScript çevirisi altın testlerle
-ilerliyor (Karar 22): veri modeli + A-katmanı + kısıt modeli (B/C) +
-kademeli çözücü çevrildi, çözücü eşdeğerliği kural-altkümeli altınlarla
-denetleniyor (Karar 23). Henüz kullanılabilir sürüm yok.
+**Durum:** Erken geliştirme (Hafta 3/8) — mimari kesinleşti (veri-yerel,
+tarayıcı-içi wasm; Karar 20). Python çekirdeği (deney/) ve TypeScript
+çevirisi (web/) TAMAMLANDI: veri modeli, kısıtlar, kademeli çözücü,
+tanılama, karne ve bağımsız denetçi; eşdeğerlik altın/ayna testleriyle
+sabitli (Karar 22-23). Arayüz fazı (kanıt ekranı iskeleti, Karar 24)
+başladı. Henüz kullanılabilir sürüm yok.
 
 **Belgeler:** docs/ altında emsal analizi, kısıt envanteri,
 adlandırma sözleşmesi ve karar kaydı.
