@@ -433,3 +433,31 @@ Teknik bağlayıcılar: çözücü Web Worker içinde koşar (arayüz donmaz);
 tek işçi varsayılanı (Karar 20) SharedArrayBuffer/COOP-COEP
 ihtiyacını muhtemelen kaldırır — iskeletin İLK doğrulama maddesidir
 (statik barındırma yolunu açar).
+
+## 25. Barındırma: Cloudflare Pages; ön koşul dist budaması (19 Tem 2026)
+Üretim dağıtımı Cloudflare Pages üzerinden yapılır (_headers dosyasıyla
+gerçek COOP/COEP; ücretsiz katman; GitHub'dan otomatik dağıtım).
+Gerekçe: EK 2 bulgusu (wasm-duman-testi.md) COOP/COEP'i zorunlu kıldı;
+GitHub Pages özel başlık gönderemez. coi-serviceworker alternatifi
+reddedildi ama YEDEK YOL olarak saklanır: bozulma kipleri tarayıcıya
+bağlı ve sessizdir (service worker kapalı gizli pencereler, kısıtlı
+okul tarayıcıları) — "çözüm yok yerine neden göster" ilkesini savunan
+ürünün altyapısı sessizce bozulmamalı. Hedef kitle bu riski büyütür.
+ÖN KOŞUL: dist budaması. 156 MB'lık dist barındırıcıdan bağımsız ürün
+sorunudur (okul internetinde kurulumsuz-tarayıcıdan tezini öldürür) ve
+Cloudflare'in 25 MiB/dosya sınırına 25+ MB'lık gereksiz runtimelar
+(mp_solver 33,0 MB, mathopt 28,9 MB) takılır. Ölçüm (19 Tem): cp-sat'ın
+kendi dosyaları 7,4 MB + 12,0 MB — sınırın rahat altında; budama
+sonrası tek dosya sınırı sorun değildir. Budama sonrası beklenmedik
+biçimde 25 MiB aşılırsa yedek yol GH Pages + coi-serviceworker'dır.
+KVKK/veri-yerel: barındırıcı yalnız statik dosya sunar; okul verisi
+tarayıcıdan çıkmaz; mimari (Karar 2/20) değişmez.
+
+## 25a. .gitignore: package-lock kuralı daraltıldı (19 Tem 2026)
+Kök .gitignore'daki genel "package-lock.json" kuralı (tarayici-testi
+için eklenmişti) deney/tarayici-testi/package-lock.json ile
+sınırlandırıldı; web/package-lock.json depoya girer. Gerekçe: farklı
+günlerde farklı yapay zekâ oturumları npm install çalıştırıyor; kilit
+dosyası yoksa sürümler sessizce kayar (örnek: plugin-react 6'nın
+vite 8 zorunluluğu ile vitest 3 çakışması elle sabitlendi — kilit
+dosyası tam bu sınıf sorunu önler).

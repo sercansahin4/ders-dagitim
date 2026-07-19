@@ -85,7 +85,7 @@ okul_anonim*
 # Tarayıcı testi (deney/tarayici-testi): yerel bağımlılık ve üretilen modeller
 node_modules/
 *.pb
-package-lock.json
+deney/tarayici-testi/package-lock.json
 
 # TS çözüm köprüsü: npm test üretir, ts_denetle.py okur; depoya girmez.
 deney/veri/altin/ts_cozumler/
