@@ -7,13 +7,21 @@
  */
 import { useEffect, useRef, useState } from "react";
 import type { CozumMesaji, HataMesaji } from "./cozucu.worker.js";
+import type { Okul, Yerlesim } from "./model.js";
+import { CizelgeTablosu } from "./CizelgeTablosu.js";
 
 type WorkerMesaji = CozumMesaji | HataMesaji;
+
+interface Cizelge {
+  okul: Okul;
+  yerlesim: Yerlesim;
+}
 
 export function Uygulama() {
   const [calisiyor, setCalisiyor] = useState(false);
   const [gecenSn, setGecenSn] = useState(0);
   const [cikti, setCikti] = useState<string | null>(null);
+  const [cizelge, setCizelge] = useState<Cizelge | null>(null);
   const baslangicRef = useRef(0);
 
   useEffect(() => {
@@ -27,6 +35,7 @@ export function Uygulama() {
   function baslat() {
     setCalisiyor(true);
     setCikti(null);
+    setCizelge(null);
     baslangicRef.current = performance.now();
     setGecenSn(0);
 
@@ -47,6 +56,9 @@ export function Uygulama() {
         (m.kilitDegeri !== null ? `\nKilit değeri: ${m.kilitDegeri}` : "") +
         `\nÇözüm süresi: ${m.sureSn.toFixed(1)} sn (worker içi ölçüm)`;
       setCikti(m.karne === null ? durum : `${durum}\n\n${m.karne}`);
+      if (m.yerlesim !== null) {
+        setCizelge({ okul: m.okul, yerlesim: m.yerlesim });
+      }
     };
     worker.onerror = (olay) => {
       setCalisiyor(false);
@@ -67,6 +79,9 @@ export function Uygulama() {
           Çözülüyor… {gecenSn.toFixed(1)} sn — sayaç akıyorsa arayüz donmuyor
           demektir.
         </p>
+      )}
+      {cizelge !== null && (
+        <CizelgeTablosu okul={cizelge.okul} yerlesim={cizelge.yerlesim} />
       )}
       {cikti !== null && <pre>{cikti}</pre>}
     </main>

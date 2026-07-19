@@ -11,10 +11,15 @@
  */
 import ornekOkulMetni from "../../deney/veri/ornek_okul.json?raw";
 import { okulYukleMetinden } from "./model.js";
+import type { Okul, Yerlesim } from "./model.js";
 import { kademeliCoz } from "./coz.js";
 import { cezalariHesapla, karneMetni } from "./karne.js";
 
-/** Worker'dan ana iş parçacığına giden mesaj (düz veri). */
+/**
+ * Worker'dan ana iş parçacığına giden mesaj. okul ve yerlesim çizelge
+ * tablosu için taşınır; ikisi de structured-clone'lanabilir (KuralAyarlari
+ * içindeki Set'ler dahil — Set, structured clone kapsamındadır).
+ */
 export interface CozumMesaji {
   tip: "sonuc";
   durumUst: string;
@@ -23,6 +28,8 @@ export interface CozumMesaji {
   gecis2Kullanildi: boolean;
   sureSn: number;
   karne: string | null;
+  okul: Okul;
+  yerlesim: Yerlesim | null;
 }
 
 export interface HataMesaji {
@@ -50,6 +57,8 @@ self.onmessage = async () => {
       gecis2Kullanildi: sonuc.gecis2Kullanildi,
       sureSn,
       karne,
+      okul,
+      yerlesim: sonuc.yerlesim,
     };
     self.postMessage(mesaj);
   } catch (hata) {
