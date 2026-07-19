@@ -127,3 +127,11 @@ gerçek donanımda tam koşu süresi bütçe-güdümlüdür.
 
 Not: süre ölçümleri bütçe-güdümlü olduğundan donanım kıyası anlamlı
 değil; anlamlı sayı, wasm+worker başlatma yükünün ~0,3 sn oluşu.
+
+Güncelleme (aynı gün, ikinci oturum): budama YAPILDI (Karar 25 ön
+koşulu). vite.config.ts'teki or-tools-budama eklentisi cp_sat dışı
+runtime URL'lerini derlemede yer tutucuyla değiştirir: dist 156 MB ->
+20 MB; en büyük dosya 12,0 MB (Cloudflare 25 MiB sınırının altında).
+Budanmış paket headless Chromium'da uçtan uca yeniden doğrulandı
+(OPTIMAL, kilit 0, konsol temiz). _headers dosyası (COOP/COEP)
+public/ üzerinden dist köküne taşınıyor.

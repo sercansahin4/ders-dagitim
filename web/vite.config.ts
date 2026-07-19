@@ -24,11 +24,39 @@
  *     destekleyen barındırıcı ayrı adımda değerlendirilecek.
  */
 import { defineConfig } from "vite";
+import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
 const kok = dirname(fileURLToPath(import.meta.url));
+
+/**
+ * dist budaması (Karar 25 ön koşulu): or-tools-wasm'ın runtime_loader'ı
+ * TÜM çözücü runtimelarını (routing, mathopt, pdlp...) new URL ile
+ * işaret eder; Rollup hepsini asset olarak taşır (~156 MB). Bu eklenti
+ * derlemede cp_sat dışındaki URL'leri zararsız bir yer tutucuyla
+ * değiştirir — yalnız cp-sat taşınır (~20 MB). Yer tutucu geçerli bir
+ * URL'dir ki paketin locateRuntimeFile döngüsü hata atmasın; fetch
+ * yalnız istenen runtime için yapıldığından bu URL hiç çağrılmaz.
+ * Not: worker.plugins ayrı verilmek zorunda — Vite build'de ana
+ * plugins listesi worker paketine uygulanmaz.
+ */
+function orToolsBudamaEklentisi(): Plugin {
+  return {
+    name: "or-tools-budama",
+    apply: "build",
+    transform(kod, id) {
+      if (!id.includes("or-tools-wasm") || !id.endsWith("runtime_loader.js")) {
+        return null;
+      }
+      return kod.replace(
+        /new URL\("\.\.\/wasm\/(?!cp_sat)[^"]+", import\.meta\.url\)\.href/g,
+        '"data:budandi"',
+      );
+    },
+  };
+}
 
 const izolasyonBasliklari = {
   "Cross-Origin-Opener-Policy": "same-origin",
@@ -36,13 +64,13 @@ const izolasyonBasliklari = {
 };
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), orToolsBudamaEklentisi()],
   optimizeDeps: { exclude: ["or-tools-wasm"] },
   server: {
     fs: { allow: [resolve(kok, "..")] },
     headers: izolasyonBasliklari,
   },
   preview: { headers: izolasyonBasliklari },
-  worker: { format: "es" },
+  worker: { format: "es", plugins: () => [orToolsBudamaEklentisi()] },
   build: { target: "es2022" },
 });
