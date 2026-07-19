@@ -78,3 +78,52 @@ Okuma:
 3. COOP/COEP barındırma sorusu yine geçerli (SharedArrayBuffer için)
    ama artık performans-kritik değil; tek işçi SAB'siz de çalışır —
    Aşama 3'te başlıksız (GitHub Pages) dağıtım yeniden değerlendirilebilir.
+
+## EK 2: Vite paketleme doğrulaması (19 Tem 2026)
+
+Ortam: Linux sandbox (arm64, zayıf tek çekirdek), headless Chromium 149,
+Vite 7.3.6 + React 18 iskeleti (Karar 24, Adım 1). Yöntem: kanıt ekranı
+Playwright ile uçtan uca sürüldü; sandbox'ın 45 sn komut sınırı yüzünden
+örnek okulun süre bütçesi test tarafında (ağ katmanında, uygulama kodu
+değişmeden) 6-8 sn'ye indirildi. Varsayılan bütçe 60 sn'dir (model.ts);
+gerçek donanımda tam koşu süresi bütçe-güdümlüdür.
+
+### Paketleme
+
+- Rollup, or-tools-wasm'ın `new URL("../wasm/...", import.meta.url)`
+  desenini tanıdı; .wasm dosyaları asset olarak doğru taşındı. Ek
+  eklenti (vite-plugin-wasm vb.) GEREKMEDİ. Yeterli olan yapılandırma:
+  `optimizeDeps.exclude: ["or-tools-wasm"]` (dev'de esbuild
+  ön-paketlemesi göreli wasm yollarını koparıyor) + `worker.format:
+  "es"` (çözücü worker'ı dinamik import kullanıyor).
+- Bilinen bedel: loader TÜM runtime'ları (routing, mathopt, pdlp...)
+  URL'lediği için dist ~156 MB; yalnız cp-sat gerekli. Budama ileride
+  ayrı iş (ağdan yalnız istenen runtime iner; disk boyutu kozmetik).
+
+### COOP/COEP bulgusu — Karar 24 hipotezi ÇÜRÜTÜLDÜ
+
+- Hipotez "tek işçi (Karar 20) SharedArrayBuffer/COOP-COEP ihtiyacını
+  muhtemelen kaldırır" idi. Ölçüm: paketin TARAYICI yapıları (asyncify
+  dahil) pthread'li; açılışta numSearchWorkers'tan bağımsız kendi
+  worker havuzunu kurup wasm belleğini (SAB) aktarıyor. Başlıksız
+  sayfada `DataCloneError: SharedArrayBuffer transfer requires
+  self.crossOriginIsolated` ile takılıyor — dev ve üretim paketinde
+  aynen.
+- Çözüm: COOP/COEP başlıkları vite.config.ts'e kalıcı eklendi (dev +
+  preview). Statik barındırma (GitHub Pages başlık gönderemez) için
+  seçenekler EK 1'deki gibi geçerli: coi-serviceworker veya başlık
+  destekleyen barındırıcı (Cloudflare Pages). Ayrı adımda karara
+  bağlanacak.
+
+### Uçtan uca sonuçlar (başlıklarla)
+
+| Mod | Sonuç |
+|---|---|
+| dev (5173) | OPTIMAL / Geçiş 2 FEASIBLE, kilit 0 (Python altını ile birebir), karne ekranda, konsol temiz |
+| build + preview (4173) | Aynı davranış, aynı çıktı |
+| Sayaç kanıtı | Çözüm sırasında sn sayacı akıyor → çözücü worker'da, arayüz donmuyor |
+| Süre (8 sn bütçe) | worker-içi 8,1 sn (bütçeyi tüketiyor, beklenen); sayfa toplamı +0,3 sn yük |
+| Testler | vitest 46/46 + tsc temiz; pytest 20/20 (deney/ dokunulmadı) |
+
+Not: süre ölçümleri bütçe-güdümlü olduğundan donanım kıyası anlamlı
+değil; anlamlı sayı, wasm+worker başlatma yükünün ~0,3 sn oluşu.
