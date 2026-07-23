@@ -8,12 +8,15 @@ Türk okul yöneticisinin kavramlarıyla (şube, ders yükü, blok,
 karnıyarık) baştan Türkçe kurulur; çözüm bulamadığında nedenini
 eyleme dönük Türkçe cümlelerle açıklar. Veri cihazdan çıkmaz.
 
-**Durum:** Erken geliştirme (Hafta 3/8) — mimari kesinleşti (veri-yerel,
-tarayıcı-içi wasm; Karar 20). Python çekirdeği (deney/) ve TypeScript
-çevirisi (web/) TAMAMLANDI: veri modeli, kısıtlar, kademeli çözücü,
-tanılama, karne ve bağımsız denetçi; eşdeğerlik altın/ayna testleriyle
-sabitli (Karar 22-23). Arayüz fazı (kanıt ekranı iskeleti, Karar 24)
-başladı. Henüz kullanılabilir sürüm yok.
+**Durum:** Geliştirmenin ileri aşaması, plan önünde — çekirdek
+tamamlandı. Mimari kesinleşti (veri-yerel, tarayıcı-içi wasm; Karar 20).
+Python çekirdeği (deney/) ve TypeScript çevirisi (web/) TAMAMLANDI: veri
+modeli, kısıtlar, kademeli çözücü, tanılama, karne ve bağımsız denetçi;
+eşdeğerlik altın/ayna testleriyle sabitli (Karar 22-23). Kanıt ekranı
+CANLIDA ve uçtan uca çalışıyor: tarayıcıda JSON yükleme → veri özeti →
+A-katmanı kapısı → çözüm → karne + iki eksenli (şube/öğretmen) çizelge;
+çözümsüzlükte "çözüm yok" yerine eyleme dönük Türkçe tanılama
+(Karar 24-27). Henüz kullanıcıya hazır, cilalı sürüm yok (MVP sürüyor).
 
 **Canlı demo (kanıt ekranı):** https://ders-dagitim.sercansahin4.workers.dev
 
