@@ -29,6 +29,8 @@ import react from "@vitejs/plugin-react";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
+import { cloudflare } from "@cloudflare/vite-plugin";
+
 const kok = dirname(fileURLToPath(import.meta.url));
 
 /**
@@ -64,7 +66,7 @@ const izolasyonBasliklari = {
 };
 
 export default defineConfig({
-  plugins: [react(), orToolsBudamaEklentisi()],
+  plugins: [react(), orToolsBudamaEklentisi(), cloudflare()],
   optimizeDeps: { exclude: ["or-tools-wasm"] },
   server: {
     fs: { allow: [resolve(kok, "..")] },
