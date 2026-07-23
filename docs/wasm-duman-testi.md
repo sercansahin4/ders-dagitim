@@ -153,3 +153,25 @@ ile uçtan uca sürüldü; örnek okulun süre bütçesi test DOSYASINDA
 
 Konsol temiz (tek 404 tarayıcının otomatik favicon isteği; sayfayla
 ilgisiz). Testler: vitest 46/46 + tsc temiz.
+
+### EK 3 devamı: UNSAT tanılama akışı (23 Tem 2026, ikinci tur)
+
+Kanıt ekranına tanılama bağlandı: INFEASIBLE'da worker tanila()'yı
+koşup Türkçe eylem raporunu ekrana getiriyor. Doğrulama vakası
+deney/veri/ornek_cozumsuz_okul.json ("Uydurma Kaya": pzt-çarş dış
+okul, {2,2}+{2,2} blok deseni iki ayrı gün ister, açık gün de iki —
+B3 ile birlikte imkânsız; A-katmanını GEÇER, kapasite yeter).
+Tarayıcıda: durum INFEASIBLE, rapor tam (neden + doğrulanmış muafiyet
+önerisi "denendi: program kurulabiliyor" + neden-önerilmiyor + teknik
+referans) — öneri doğrulama yeniden-çözümleri worker içinde koştu.
+
+Bulgu (beklenen, kayda değer): native CP-SAT ile wasm FARKLI unsat
+core döndürdü (native: B3+B4-Mat+B4-Fizik; wasm: B3+B4-Fizik). İkisi
+de geçerli kanıt; unsat core tekil değildir ve raporun kendi dipnotu
+bunu zaten belirtir. Bu yüzden Python<->TS rapor eşitliği yalnız
+tekil-çekirdekli tanılama altınlarında aranır (mevcut disiplin doğru
+kurulmuş); çok-çekirdekli vakalarda ölçüt yapısal doğruluktur.
+
+Ayrıca: sabit_cakisma_unsat fixture'ında tanılama "doğrulayamadı"
+der (çekirdek boş: sabit dilim çakışması varsayım anahtarı taşımaz)
+— Python ile TS birebir aynı davranıyor; bilinen kapsam sınırı.

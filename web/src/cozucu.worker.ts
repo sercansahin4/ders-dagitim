@@ -13,6 +13,7 @@ import { okulYukleMetinden } from "./model.js";
 import type { Okul, Yerlesim } from "./model.js";
 import { kademeliCoz } from "./coz.js";
 import { cezalariHesapla, karneMetni } from "./karne.js";
+import { tanila } from "./tanilama.js";
 
 /**
  * Ana iş parçacığından worker'a giden istek: çözülecek okulun JSON
@@ -37,6 +38,8 @@ export interface CozumMesaji {
   gecis2Kullanildi: boolean;
   sureSn: number;
   karne: string | null;
+  /** Çözümsüzlükte (INFEASIBLE) tanılama modunun Türkçe eylem raporu. */
+  tanilamaRaporu: string | null;
   okul: Okul;
   yerlesim: Yerlesim | null;
 }
@@ -58,6 +61,12 @@ self.onmessage = async (olay: MessageEvent<CozIstegi>) => {
         ? null
         : karneMetni(okul, cezalariHesapla(okul, sonuc.yerlesim));
 
+    // Çözümsüzlük kanıtlandıysa (INFEASIBLE) tanılama modunda yeniden
+    // kurulup Türkçe eylem raporu üretilir (Karar 13 akışı). UNKNOWN
+    // (süre bütçesi yetmedi) tanılanmaz: çözümsüzlük kanıtı yoktur.
+    const tanilamaRaporu =
+      sonuc.durumUst === "INFEASIBLE" ? await tanila(okul) : null;
+
     const mesaj: CozumMesaji = {
       tip: "sonuc",
       durumUst: sonuc.durumUst,
@@ -66,6 +75,7 @@ self.onmessage = async (olay: MessageEvent<CozIstegi>) => {
       gecis2Kullanildi: sonuc.gecis2Kullanildi,
       sureSn,
       karne,
+      tanilamaRaporu,
       okul,
       yerlesim: sonuc.yerlesim,
     };

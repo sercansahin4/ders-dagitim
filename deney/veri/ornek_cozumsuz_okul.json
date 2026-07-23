@@ -1,0 +1,169 @@
+{
+  "izgara": {
+    "gun_sayisi": 5,
+    "dilim_sayisi": 8,
+    "ogle_arasi_sonrasi_dilim": 5,
+    "ogle_arasi_bloklari_boler": false
+  },
+  "dersler": [
+    {
+      "ad": "Matematik",
+      "kategori": "SAYISAL"
+    },
+    {
+      "ad": "Fizik",
+      "kategori": "SAYISAL"
+    },
+    {
+      "ad": "Rehberlik",
+      "kategori": "REHBERLIK_DIGER"
+    }
+  ],
+  "ogretmenler": [
+    {
+      "ad": "Uydurma Kaya",
+      "verebilecegi_dersler": [
+        "Matematik",
+        "Fizik"
+      ],
+      "bos_gun_tercihi": null,
+      "kapanislar": [
+        {
+          "gun": 1,
+          "dilimler": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "neden": "DIS_OKUL"
+        },
+        {
+          "gun": 2,
+          "dilimler": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "neden": "DIS_OKUL"
+        },
+        {
+          "gun": 3,
+          "dilimler": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "neden": "DIS_OKUL"
+        }
+      ]
+    },
+    {
+      "ad": "Uydurma Rehber",
+      "verebilecegi_dersler": [
+        "Rehberlik"
+      ],
+      "bos_gun_tercihi": null,
+      "kapanislar": []
+    }
+  ],
+  "subeler": [
+    {
+      "ad": "9A",
+      "sinif_rehber_ogretmeni": "Uydurma Rehber"
+    }
+  ],
+  "ders_atamalari": [
+    {
+      "ders": "Matematik",
+      "haftalik_saat": 4,
+      "blok_deseni": [
+        2,
+        2
+      ],
+      "subeler": [
+        "9A"
+      ],
+      "ogretmenler": [
+        "Uydurma Kaya"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Fizik",
+      "haftalik_saat": 4,
+      "blok_deseni": [
+        2,
+        2
+      ],
+      "subeler": [
+        "9A"
+      ],
+      "ogretmenler": [
+        "Uydurma Kaya"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    },
+    {
+      "ders": "Rehberlik",
+      "haftalik_saat": 1,
+      "blok_deseni": [
+        1
+      ],
+      "subeler": [
+        "9A"
+      ],
+      "ogretmenler": [
+        "Uydurma Rehber"
+      ],
+      "sabit_dilimler": null,
+      "birlestirilebilir": false
+    }
+  ],
+  "kural_ayarlari": {
+    "ogretmen_sube_gunluk_toplam": 3,
+    "ardisiklik_siniri": 2,
+    "pencere_sert_esigi": 4,
+    "pencereyi_bolmeyen_nedenler": [],
+    "b3_muaf_ogretmenler": [],
+    "sayisal_dilim_cezasi": [
+      0,
+      0,
+      0,
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "sanat_spor_dilim_cezasi": [
+      4,
+      3,
+      2,
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    "sure_butcesi_saniye": 60,
+    "ust_katman_sure_orani": 0.6,
+    "kapali_kurallar": []
+  }
+}

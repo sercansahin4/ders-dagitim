@@ -117,7 +117,10 @@ export function Uygulama() {
         (m.durumAlt !== null ? ` / Geçiş 2: ${m.durumAlt}` : "") +
         (m.kilitDegeri !== null ? `\nKilit değeri: ${m.kilitDegeri}` : "") +
         `\nÇözüm süresi: ${m.sureSn.toFixed(1)} sn (worker içi ölçüm)`;
-      setCikti(m.karne === null ? durum : `${durum}\n\n${m.karne}`);
+      // Öncelik sırası: çözüm varsa karne; çözümsüzlük kanıtlıysa
+      // tanılama raporu ("çözüm yok" yerine neden + eyleme dönük öneri).
+      const ek = m.karne ?? m.tanilamaRaporu;
+      setCikti(ek === null ? durum : `${durum}\n\n${ek}`);
       if (m.yerlesim !== null) {
         setCizelge({ okul: m.okul, yerlesim: m.yerlesim });
       }
