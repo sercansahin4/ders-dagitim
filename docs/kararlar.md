@@ -519,3 +519,26 @@ Kurtarılabilirlik için dalın wrangler.jsonc içeriği (14 satır) aşağıda 
   "compatibility_flags": ["nodejs_compat"]
 }
 ```
+
+## 27. Çizelge tablosu iki eksenli: Şube ⇄ Öğretmen (23 Tem 2026)
+Çizelge ekranı tek (şube) eksen yerine İKİ eksende gösterilir; üstteki
+sekmeyle şube-satırlı ve öğretmen-satırlı ızgara arasında geçilir. Model:
+aynı `yerlesim`in iki referans çerçevesi (transpose) — bloklar değişmez,
+yalnız hangi satıra düştükleri değişir. Bunu temiz kılan değişmez gözlem:
+fizibıl çizelgede sert kısıtlar bir varlığı (öğretmen ya da şube) aynı anda
+iki blokta yasakladığından her (varlık, gün, dilim) hücresinde EN ÇOK bir
+blok başlar; bu yüzden tek bir colspan/kaplı makinesi iki eksende de çalışır.
+
+Mimari: blok-türetme saf mantığı web/src/cizelge.ts'e çıkarıldı
+(cizelgeSatirlariHazirla(okul, yerlesim, eksen)); CizelgeTablosu.tsx ince
+görünüm katmanı olarak onu çağırır. Gerekçe: model/coz/karne deseni — mantık
+saf ve React'sız olunca render çalıştırmadan doğrudan vitest'lenir
+(test/cizelge.test.ts, 9 test: çok-öğretmenli atama iki öğretmen satırına,
+birleşik atama her şube satırına düşüyor mu; 2-saat blok colspan+kaplı;
+eksene göre hücre içeriği). Öğretmen görünümünde satırlar TÜM öğretmenlerdir
+(boş haftalı idareci dahil) — ders atanmamış öğretmeni gözle yakalatır.
+
+Kapsam (önce somut): bu adım "tüm satırlar + sekme" genel ızgarasıdır.
+İleride: tek bir öğretmeni/şubeyi seçip yazdırılabilir tek program (duvara
+asılan hâl) — ayrı ve değerli iş, ayrı kararla gelir. Hücre ipucu (title)
+artık eksenden bağımsız ders + öğretmenler + şubeleri birlikte gösterir.
