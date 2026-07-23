@@ -453,6 +453,15 @@ biçimde 25 MiB aşılırsa yedek yol GH Pages + coi-serviceworker'dır.
 KVKK/veri-yerel: barındırıcı yalnız statik dosya sunar; okul verisi
 tarayıcıdan çıkmaz; mimari (Karar 2/20) değişmez.
 
+Güncelleme (23 Tem 2026): dağıtım YAPILDI ve doğrulandı. Cloudflare'in
+Git entegrasyonu projeyi klasik Pages yerine Workers statik varlık
+altyapısıyla kurdu; _headers orada da işliyor (canlı sayfada
+crossOriginIsolated=true ölçüldü). Canlı adres:
+https://ders-dagitim.sercansahin4.workers.dev — örnek okul kullanıcı
+donanımında uçtan uca çözüldü (OPTIMAL, kilit 0, karne + çizelge).
+Kurulum notu: Root directory=web ayarı zorunlu (ilk deneme kökte
+package.json bulamayıp düştü). Her push otomatik yeniden dağıtır.
+
 ## 25a. .gitignore: package-lock kuralı daraltıldı (19 Tem 2026)
 Kök .gitignore'daki genel "package-lock.json" kuralı (tarayici-testi
 için eklenmişti) deney/tarayici-testi/package-lock.json ile

@@ -15,6 +15,8 @@ tanılama, karne ve bağımsız denetçi; eşdeğerlik altın/ayna testleriyle
 sabitli (Karar 22-23). Arayüz fazı (kanıt ekranı iskeleti, Karar 24)
 başladı. Henüz kullanılabilir sürüm yok.
 
+**Canlı demo (kanıt ekranı):** https://ders-dagitim.sercansahin4.workers.dev
+
 **Belgeler:** docs/ altında emsal analizi, kısıt envanteri,
 adlandırma sözleşmesi ve karar kaydı.
 
