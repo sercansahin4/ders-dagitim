@@ -470,3 +470,52 @@ günlerde farklı yapay zekâ oturumları npm install çalıştırıyor; kilit
 dosyası yoksa sürümler sessizce kayar (örnek: plugin-react 6'nın
 vite 8 zorunluluğu ile vitest 3 çakışması elle sabitlendi — kilit
 dosyası tam bu sınıf sorunu önler).
+
+## 26. cloudflare/workers-autoconfig dalı reddedildi; depo-içi wrangler config-as-code İleride'ye park (23 Tem 2026)
+Cloudflare'in Git entegrasyonunun otomatik açtığı cloudflare/workers-autoconfig
+dalı SİLİNDİ (birleştirilmedi). Dal, main'in (ac3a8b4) tam üstünde tek commit
+("Add Cloudflare Workers configuration"), sapmasız (0 geride). İçeriği:
+web/wrangler.jsonc ekliyor (assets.not_found_handling=single-page-application,
+compatibility_flags=[nodejs_compat], observability); @cloudflare/vite-plugin +
+wrangler'ı devDependency yapıyor (web/package-lock.json +1081 satır — Karar 25a
+gereği bu dosya depoya girdiğinden gerçek bir değişiklik); vite.config.ts
+plugins dizisine cloudflare() ekliyor; deploy/preview script'lerini wrangler'a
+çeviriyor.
+
+Gerekçe (birleştirme yerine silme): Mevcut dağıtım (Karar 25 güncellemesi)
+çalışıyor ve DOĞRULANMIŞ — Workers statik varlık, panodan Root=web, her push
+otomatik, canlı sayfada crossOriginIsolated=true ölçüldü. Dal bu yolu
+DOĞRULANMAMIŞ bir build-zinciri değişikliğiyle değiştiriyor: cloudflare()
+eklentisi build hattına giriyor ve üç doğrulanmış özelliği riske atabilir —
+(a) COOP/COEP (EK 2/wasm-duman-testi ile zorunlu), (b) dist budaması
+(156→20 MB, Karar 25 ön koşulu, cp-sat-only), (c) or-tools Web Worker
+yapılandırması (worker:{format:'es'}, Karar 24 teknik bağlayıcısı). Ek olarak
++2 ağır devDependency, Karar 24'ün "önce somut / durum-UI kütüphanesi şimdi
+eklenmez / bağımlılık ağırlığı feragatı" çizgisine aykırı. Config-as-code
+kazanımı (tekrarlanabilir altyapı, wrangler dev) gerçek ama MVP'de gerekli
+değil.
+
+Dürüst kayıt: Bir merge'in bu özellikleri KESİN bozacağı ölçülmedi; gerekçe
+asimetrik risk — çalışan+doğrulanmış tek canlı demoyu, gerekmeyen bir kolaylık
+için doğrulanmamış değişikliğe açmamak ("her aşamada çalışan bir şey"). Silme
+güvenli: canlı dağıtım main + Root=web'den beslenir, bu daldan değil; silmek
+üretimi etkilemez. Cloudflare ileride öneri dalını yeniden açabilir (zararsız;
+yine silinir).
+
+İleride (park; MVP sonrası bilinçli ele alınır): Depo-içi config-as-code
+(wrangler.jsonc) şu doğrulama kapıları geçilerek benimsenebilir — (1) build
+sonrası canlıda crossOriginIsolated=true korunuyor; (2) dist budaması hâlâ
+cp-sat-only ve tek-dosya 25 MiB sınırının altında; (3) or-tools Web Worker
+sorunsuz build ediyor; (4) headless tarayıcı testleri + canlı dağıtım yeşil.
+Kurtarılabilirlik için dalın wrangler.jsonc içeriği (14 satır) aşağıda saklanır:
+
+```jsonc
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ders-dagitim",
+  "compatibility_date": "2026-07-23",
+  "observability": { "enabled": true },
+  "assets": { "not_found_handling": "single-page-application" },
+  "compatibility_flags": ["nodejs_compat"]
+}
+```
