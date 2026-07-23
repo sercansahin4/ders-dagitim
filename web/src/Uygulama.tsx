@@ -1,12 +1,19 @@
 /**
- * Kanıt ekranı (Karar 24 — Adım 1): tek buton, worker'da çözüm, ham
- * metin çıktı. Görsel tasarım BİLİNÇLİ olarak yok; amaç motorun
- * tarayıcıda uçtan uca çalıştığını kanıtlamak. Çözüm sırasında akan
- * saniye sayacı, çözücünün ana iş parçacığını dondurmadığının
- * (worker'ın gerçekten çalıştığının) görsel kanıtıdır.
+ * Kanıt ekranı (Karar 24 — Adım 3): JSON dosyası yükle → veri özeti +
+ * A-katmanı kontrolü → worker'da çözüm. Görsel tasarım hâlâ BİLİNÇLİ
+ * olarak asgari; amaç motorun kullanıcı verisiyle tarayıcıda uçtan uca
+ * çalıştığını kanıtlamak. Örnek okul aynı kanaldan "hazır yüklenmiş
+ * dosya" gibi akar — iki yol arasında davranış farkı yoktur.
+ *
+ * A-katmanı hatası varsa Çöz düğmesi kilitlenir: Python akışıyla aynı
+ * davranış (tutarsız veri çözücüye gönderilmez, önce veri düzeltilir).
+ * Çözüm sırasında akan saniye sayacı, çözücünün ana iş parçacığını
+ * dondurmadığının (worker'ın gerçekten çalıştığının) görsel kanıtıdır.
  */
 import { useEffect, useRef, useState } from "react";
-import type { CozumMesaji, HataMesaji } from "./cozucu.worker.js";
+import ornekOkulMetni from "../../deney/veri/ornek_okul.json?raw";
+import type { CozIstegi, CozumMesaji, HataMesaji } from "./cozucu.worker.js";
+import { aKatmaniDogrulama, okulYukleMetinden } from "./model.js";
 import type { Okul, Yerlesim } from "./model.js";
 import { CizelgeTablosu } from "./CizelgeTablosu.js";
 
@@ -17,7 +24,30 @@ interface Cizelge {
   yerlesim: Yerlesim;
 }
 
+/** Yüklenmiş ve ayrıştırılmış okul verisi + kaynağının adı. */
+interface YuklenmisVeri {
+  kaynakAd: string;
+  okulMetni: string;
+  okul: Okul;
+  aKatmaniHatalari: string[];
+}
+
+/** Okul verisinin sayısal özeti (yanlış dosyayı çözmeden önce yakalamak için). */
+function veriOzeti(okul: Okul): string {
+  const toplamSaat = okul.ders_atamalari.reduce(
+    (toplam, atama) => toplam + atama.haftalik_saat,
+    0,
+  );
+  return (
+    `${okul.subeler.length} şube, ${okul.ogretmenler.length} öğretmen, ` +
+    `${okul.dersler.length} ders, ${okul.ders_atamalari.length} ders ataması ` +
+    `(${toplamSaat} saat/hafta)`
+  );
+}
+
 export function Uygulama() {
+  const [veri, setVeri] = useState<YuklenmisVeri | null>(null);
+  const [yuklemeHatasi, setYuklemeHatasi] = useState<string | null>(null);
   const [calisiyor, setCalisiyor] = useState(false);
   const [gecenSn, setGecenSn] = useState(0);
   const [cikti, setCikti] = useState<string | null>(null);
@@ -32,7 +62,39 @@ export function Uygulama() {
     return () => clearInterval(sayac);
   }, [calisiyor]);
 
+  /** Metni ayrıştırır, A-katmanını koşar, sonucu ekran durumuna yazar. */
+  function veriYukle(kaynakAd: string, okulMetni: string) {
+    setCikti(null);
+    setCizelge(null);
+    try {
+      const okul = okulYukleMetinden(okulMetni);
+      setVeri({
+        kaynakAd,
+        okulMetni,
+        okul,
+        aKatmaniHatalari: aKatmaniDogrulama(okul),
+      });
+      setYuklemeHatasi(null);
+    } catch (hata) {
+      setVeri(null);
+      setYuklemeHatasi(
+        `${kaynakAd} okunamadı: ${String(hata)}\n` +
+          `Dosyanın bu araçtan (veya deney/ üreticilerinden) çıkmış bir ` +
+          `okul JSON'u olduğundan emin olun.`,
+      );
+    }
+  }
+
+  function dosyaSecildi(olay: React.ChangeEvent<HTMLInputElement>) {
+    const dosya = olay.target.files?.[0];
+    if (dosya === undefined) return;
+    void dosya.text().then((metin) => veriYukle(dosya.name, metin));
+    // Aynı dosya yeniden seçilebilsin diye girdi sıfırlanır.
+    olay.target.value = "";
+  }
+
   function baslat() {
+    if (veri === null) return;
     setCalisiyor(true);
     setCikti(null);
     setCizelge(null);
@@ -65,15 +127,52 @@ export function Uygulama() {
       worker.terminate();
       setCikti(`Worker hatası: ${olay.message}`);
     };
-    worker.postMessage({ tip: "coz" });
+    const istek: CozIstegi = { tip: "coz", okulMetni: veri.okulMetni };
+    worker.postMessage(istek);
   }
+
+  const cozulebilir =
+    veri !== null && veri.aKatmaniHatalari.length === 0 && !calisiyor;
 
   return (
     <main>
       <h1>ders-dagitim — kanıt ekranı</h1>
-      <button onClick={baslat} disabled={calisiyor}>
-        Örnek okulu çöz
-      </button>
+
+      <p>
+        <label>
+          Okul JSON dosyası yükle:{" "}
+          <input type="file" accept=".json,application/json" onChange={dosyaSecildi} />
+        </label>{" "}
+        <button
+          onClick={() => veriYukle("örnek okul", ornekOkulMetni)}
+          disabled={calisiyor}
+        >
+          Örnek okulu kullan
+        </button>
+      </p>
+
+      {yuklemeHatasi !== null && <pre>{yuklemeHatasi}</pre>}
+
+      {veri !== null && (
+        <section>
+          <p>
+            <strong>{veri.kaynakAd}</strong> yüklendi: {veriOzeti(veri.okul)}
+          </p>
+          {veri.aKatmaniHatalari.length > 0 && (
+            <div>
+              <p>
+                Veri tutarlılık kontrolü (A-katmanı) {veri.aKatmaniHatalari.length}{" "}
+                sorun buldu; çözüme geçmeden önce veriyi düzeltin:
+              </p>
+              <pre>{veri.aKatmaniHatalari.join("\n")}</pre>
+            </div>
+          )}
+          <button onClick={baslat} disabled={!cozulebilir}>
+            Çöz
+          </button>
+        </section>
+      )}
+
       {calisiyor && (
         <p>
           Çözülüyor… {gecenSn.toFixed(1)} sn — sayaç akıyorsa arayüz donmuyor

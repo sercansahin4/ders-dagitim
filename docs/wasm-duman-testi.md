@@ -135,3 +135,21 @@ runtime URL'lerini derlemede yer tutucuyla değiştirir: dist 156 MB ->
 Budanmış paket headless Chromium'da uçtan uca yeniden doğrulandı
 (OPTIMAL, kilit 0, konsol temiz). _headers dosyası (COOP/COEP)
 public/ üzerinden dist köküne taşınıyor.
+
+## EK 3: JSON yükleme akışı doğrulaması (23 Tem 2026)
+
+Ortam: Linux sandbox (arm64), headless Chromium 149, üretim paketi
+(vite build) + COOP/COEP başlıklı statik sunucu. Kanıt ekranı Adım 3
+(dosya yükle -> veri özeti + A-katmanı -> worker'da çöz) Playwright
+ile uçtan uca sürüldü; örnek okulun süre bütçesi test DOSYASINDA
+6 sn'ye indirildi (uygulama kodu değişmeden).
+
+| Senaryo | Sonuç |
+|---|---|
+| Bozuk JSON yükle | Türkçe "okunamadı" mesajı, çözüm başlamıyor |
+| A-katmanı hatalı okul (atamada listede olmayan öğretmen) | Hata listesi ekranda, Çöz düğmesi kilitli |
+| Geçerli dosya yükle -> Çöz | Özet doğru (3 şube / 9 öğretmen / 39 atama / 89 saat), OPTIMAL + Geçiş 2 FEASIBLE, kilit 0, çizelge tablosu çizildi |
+| Örnek okul düğmesi | Aynı kanaldan akıyor; özet aynı, Çöz aktif |
+
+Konsol temiz (tek 404 tarayıcının otomatik favicon isteği; sayfayla
+ilgisiz). Testler: vitest 46/46 + tsc temiz.

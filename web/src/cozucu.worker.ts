@@ -9,11 +9,20 @@
  * üretilir ve ana iş parçacığına yalnız düz (structured-clone'lanabilir)
  * alanlar gönderilir.
  */
-import ornekOkulMetni from "../../deney/veri/ornek_okul.json?raw";
 import { okulYukleMetinden } from "./model.js";
 import type { Okul, Yerlesim } from "./model.js";
 import { kademeliCoz } from "./coz.js";
 import { cezalariHesapla, karneMetni } from "./karne.js";
+
+/**
+ * Ana iş parçacığından worker'a giden istek: çözülecek okulun JSON
+ * metni. Okul NESNESİ yerine metin taşınır ki iki taraf da aynı
+ * yükleyiciden (okulYukleMetinden) geçsin — tek doğruluk kaynağı.
+ */
+export interface CozIstegi {
+  tip: "coz";
+  okulMetni: string;
+}
 
 /**
  * Worker'dan ana iş parçacığına giden mesaj. okul ve yerlesim çizelge
@@ -37,9 +46,9 @@ export interface HataMesaji {
   mesaj: string;
 }
 
-self.onmessage = async () => {
+self.onmessage = async (olay: MessageEvent<CozIstegi>) => {
   try {
-    const okul = okulYukleMetinden(ornekOkulMetni);
+    const okul = okulYukleMetinden(olay.data.okulMetni);
     const baslangic = performance.now();
     const sonuc = await kademeliCoz(okul);
     const sureSn = (performance.now() - baslangic) / 1000;
