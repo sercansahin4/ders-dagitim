@@ -542,3 +542,41 @@ Kapsam (önce somut): bu adım "tüm satırlar + sekme" genel ızgarasıdır.
 İleride: tek bir öğretmeni/şubeyi seçip yazdırılabilir tek program (duvara
 asılan hâl) — ayrı ve değerli iş, ayrı kararla gelir. Hücre ipucu (title)
 artık eksenden bağımsız ders + öğretmenler + şubeleri birlikte gösterir.
+
+## 28. Veri girişi ekranı: yüklenmiş okulu düzenle → tekrar çöz (24 Tem 2026)
+Kanıt ekranı yalnız hazır JSON yüklüyordu (memur JSON yazamaz). İlk düzenleme
+artışı "yüklenmiş okulu düzenle + tekrar çöz" döngüsüdür — en sık gerçek
+kullanım ("bu öğretmene bir gün daha kapat, tekrar çöz") ve en riskli UX
+(ilişkisel DersAtamasi + blok deseni) önce. Kapsam (önce somut): öğretmen
+düzenleme (boş gün, kapanış, yeniden adlandırma, korumalı silme) + ders
+ataması düzenleme (haftalık saat, blok deseni çipleri). DIŞINDA (sonraki
+kararlar): sıfırdan okul oluşturma; tek program yazdırma (Karar 27 İleride);
+şube/ders varlık CRUD'u.
+
+Kararlar: (a) Durum yönetimi kütüphanesi EKLENMEDİ (Karar 24 çizgisi) — tek
+Okul taslağı + saf taslakReducer (cizelge.ts deseni, React'sız, doğrudan
+vitest: web/test/taslak.test.ts, 10 test). (b) Doğrulama TEK kaynak: mevcut
+aKatmaniDogrulama taslak üzerinde CANLI koşar; form-düzeyi ayrı kural
+YAZILMADI (Karar 22 sapma riski). Blok toplamı ipucu UI'da gösterilir ama
+yetkili hata A-katmanı panelindedir. (c) Kalıcılık IndexedDB (taslakDepo.ts):
+cihaz-yerel, veri-yerel tezini (Karar 2/20) ihlal etmez, refresh'te iş
+kaybını önler; Set'ler structured clone'la doğrudan saklanır. (d) Blok deseni
+sırasız çoklu küme çip girişi (Kaşif'in sıralı-desen dayatmasını kaldırır).
+
+Keşif — serileştirici (okulToDict): cozucu.worker okulMetni bekler ve
+KuralAyarlari Set alanları JSON.stringify'da sessizce {} olur; düzenlenen
+taslağı çözmek/dışa aktarmak için okul→JSON şart oldu. Python okul_to_dict
+TAM vardı; TS yalnız from_dict yarısını gerçeklemişti. Eksik ikiz tamamlandı
+ve Python altınına sabitlendi (Karar 22; deney/serilestirme_altin_uret.py +
+web/test/serilestirme-altin.test.ts). Yeni kural DEĞİL. Set alanları model.py
+gibi sıralı liste yazılır.
+
+Referans bütünlüğü (taslak.ts): ad-bağı DÖRT yerde geçer (ogretmenler,
+ders_atamalari.ogretmenler, subeler.sinif_rehber_ogretmeni, kural_ayarlari
+.b3_muaf_ogretmenler); yeniden adlandırma/silme dördünü tek elden görür.
+Korumalı silme (ogretmenSil) güvenli değilse değişmez döner ve nedeni Türkçe
+gösterir — invaryant UI hatasına dayanıklı.
+
+Durum: tsc temiz; web vitest 66/66 (taslak 10 + serileştirme altını 1 dahil);
+Python'a dokunulmadı (pytest 20/20 etkilenmez). Tarayıcı senaryosu (kaydet→
+refresh→geri yükle, düzenle→tekrar çöz, korumalı silme) elle doğrulanacak.

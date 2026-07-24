@@ -277,6 +277,88 @@ export function okulYukleMetinden(metin: string): Okul {
   return okulFromDict(JSON.parse(metin) as JsonSozluk);
 }
 
+// --- JSON serileştirme (model.py okul_to_dict ailesinin ikizi) -----------
+// Bugüne dek yalnız from_dict yarısı gerçeklenmişti (tarayıcı yalnız
+// OKUYORDU). Veri girişi (Karar 28) düzenlenen taslağı worker'a (okulMetni)
+// ve JSON dışa-aktarmaya verdiğinden write yarısı gerekti. KuralAyarlari Set
+// alanları model.py gibi SIRALI liste yazılır (sorted()); sıralama Python
+// sorted() ile eşleşir (Türkçe harfler BMP'de tek kod biriminde, JS .sort()
+// aynı sırayı verir). Çıktı okul_to_dict altınıyla sabittir (Karar 22).
+
+function izgaraToDict(izgara: Izgara): JsonSozluk {
+  return {
+    gun_sayisi: izgara.gun_sayisi,
+    dilim_sayisi: izgara.dilim_sayisi,
+    ogle_arasi_sonrasi_dilim: izgara.ogle_arasi_sonrasi_dilim,
+    ogle_arasi_bloklari_boler: izgara.ogle_arasi_bloklari_boler,
+  };
+}
+
+function dersToDict(ders: Ders): JsonSozluk {
+  return { ad: ders.ad, kategori: ders.kategori };
+}
+
+function kapanisToDict(kapanis: Kapanis): JsonSozluk {
+  return { gun: kapanis.gun, dilimler: [...kapanis.dilimler], neden: kapanis.neden };
+}
+
+function ogretmenToDict(ogretmen: Ogretmen): JsonSozluk {
+  return {
+    ad: ogretmen.ad,
+    verebilecegi_dersler: [...ogretmen.verebilecegi_dersler],
+    bos_gun_tercihi: ogretmen.bos_gun_tercihi,
+    kapanislar: ogretmen.kapanislar.map(kapanisToDict),
+  };
+}
+
+function subeToDict(sube: Sube): JsonSozluk {
+  return { ad: sube.ad, sinif_rehber_ogretmeni: sube.sinif_rehber_ogretmeni };
+}
+
+function dersAtamasiToDict(atama: DersAtamasi): JsonSozluk {
+  return {
+    ders: atama.ders,
+    haftalik_saat: atama.haftalik_saat,
+    blok_deseni: [...atama.blok_deseni],
+    subeler: [...atama.subeler],
+    ogretmenler: [...atama.ogretmenler],
+    sabit_dilimler: atama.sabit_dilimler,
+    birlestirilebilir: atama.birlestirilebilir,
+  };
+}
+
+function kuralAyarlariToDict(kural: KuralAyarlari): JsonSozluk {
+  return {
+    ogretmen_sube_gunluk_toplam: kural.ogretmen_sube_gunluk_toplam,
+    ardisiklik_siniri: kural.ardisiklik_siniri,
+    pencere_sert_esigi: kural.pencere_sert_esigi,
+    pencereyi_bolmeyen_nedenler: [...kural.pencereyi_bolmeyen_nedenler].sort(),
+    b3_muaf_ogretmenler: [...kural.b3_muaf_ogretmenler].sort(),
+    sayisal_dilim_cezasi: [...kural.sayisal_dilim_cezasi],
+    sanat_spor_dilim_cezasi: [...kural.sanat_spor_dilim_cezasi],
+    sure_butcesi_saniye: kural.sure_butcesi_saniye,
+    ust_katman_sure_orani: kural.ust_katman_sure_orani,
+    kapali_kurallar: [...kural.kapali_kurallar].sort(),
+  };
+}
+
+/** Bir Okul nesnesini JSON'a yazılabilir sözlüğe çevirir (okul_to_dict ikizi). */
+export function okulToDict(okul: Okul): JsonSozluk {
+  return {
+    izgara: izgaraToDict(okul.izgara),
+    dersler: okul.dersler.map(dersToDict),
+    ogretmenler: okul.ogretmenler.map(ogretmenToDict),
+    subeler: okul.subeler.map(subeToDict),
+    ders_atamalari: okul.ders_atamalari.map(dersAtamasiToDict),
+    kural_ayarlari: kuralAyarlariToDict(okul.kural_ayarlari),
+  };
+}
+
+/** Okul'u worker'a/dışa-aktarmaya verilebilir JSON metnine çevirir (okul_kaydet ikizi). */
+export function okulKaydetMetne(okul: Okul): string {
+  return JSON.stringify(okulToDict(okul), null, 2);
+}
+
 /** JSON sözlüğünden bir Yerlesim nesnesi kurar (model.py yerlesim_from_dict ikizi). */
 export function yerlesimFromDict(veri: JsonSozluk): Yerlesim {
   return {
