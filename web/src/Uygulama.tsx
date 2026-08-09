@@ -26,6 +26,8 @@ type WorkerMesaji = CozumMesaji | HataMesaji;
 interface Cizelge {
   okul: Okul;
   yerlesim: Yerlesim;
+  /** Karar 29: fizibilite geri düşüşünden geldi — sert kurallara uyar, iyileştirilmemiştir. */
+  ham: boolean;
 }
 
 /** Okul verisinin sayısal özeti (yanlış dosyayı çözmeden önce yakalamak için). */
@@ -145,10 +147,13 @@ export function Uygulama() {
         (m.durumAlt !== null ? ` / Geçiş 2: ${m.durumAlt}` : "") +
         (m.kilitDegeri !== null ? `\nKilit değeri: ${m.kilitDegeri}` : "") +
         `\nÇözüm süresi: ${m.sureSn.toFixed(1)} sn (worker içi ölçüm)`;
-      const ek = m.karne ?? m.tanilamaRaporu;
-      setCikti(ek === null ? durum : `${durum}\n\n${ek}`);
+      // Karar 29: UNKNOWN'da süre raporu, INFEASIBLE'da tanılama, başarıda
+      // karne. Üçü de yoksa kullanıcı ham durum kodundan başka bir şey
+      // görmemeli — bu sıralama "her hâlde Türkçe bir şey söyle" kuralıdır.
+      const ek = m.sureRaporu ?? m.karne ?? m.tanilamaRaporu;
+      setCikti(ek === null ? durum : `${ek}\n\n---\n${durum}`);
       if (m.yerlesim !== null) {
-        setCizelge({ okul: m.okul, yerlesim: m.yerlesim });
+        setCizelge({ okul: m.okul, yerlesim: m.yerlesim, ham: m.fizibiliteGeriDusus });
       }
     };
     worker.onerror = (olay) => {
@@ -209,10 +214,27 @@ export function Uygulama() {
               <pre>{aKatmaniHatalari.join("\n")}</pre>
             </div>
           )}
-          <button onClick={baslat} disabled={!cozulebilir}>
-            Çöz
-          </button>{" "}
-          <button onClick={taslakDisaAktar}>JSON dışa aktar</button>
+          <p>
+            <button onClick={baslat} disabled={!cozulebilir}>
+              Çöz
+            </button>{" "}
+            <button onClick={taslakDisaAktar}>JSON dışa aktar</button>{" "}
+            <label title="Çözücüye tanınan toplam arama süresi. Büyük veya sıkışık okullarda artırın.">
+              Süre bütçesi:{" "}
+              <input
+                type="number"
+                min={1}
+                step={10}
+                value={taslak.kural_ayarlari.sure_butcesi_saniye}
+                onChange={(e) =>
+                  duzenle({ tip: "sureButcesi", saniye: Number(e.target.value) })
+                }
+                disabled={calisiyor}
+                style={{ width: 72 }}
+              />{" "}
+              sn
+            </label>
+          </p>
 
           <OgretmenDuzenle okul={taslak} duzenle={duzenle} />
           <DersAtamasiDuzenle okul={taslak} duzenle={duzenle} />
@@ -222,6 +244,14 @@ export function Uygulama() {
       {calisiyor && (
         <p>
           Çözülüyor… {gecenSn.toFixed(1)} sn — sayaç akıyorsa arayüz donmuyor demektir.
+        </p>
+      )}
+      {cizelge !== null && cizelge.ham && (
+        <p>
+          <strong>Not:</strong> Bu çizelge kural ihlali içermiyor ama
+          iyileştirilmedi — süre bütçesi yetmediği için tercih ve denge
+          kuralları (boş gün, günlük yük, bekleme saati) hesaba katılmadan
+          bulundu. Süre bütçesini artırıp tekrar çözmek daha iyisini verebilir.
         </p>
       )}
       {cizelge !== null && <CizelgeTablosu okul={cizelge.okul} yerlesim={cizelge.yerlesim} />}

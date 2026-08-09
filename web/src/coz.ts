@@ -237,14 +237,23 @@ export interface FizibiliteSonucu {
  *
  * Durum ayrıca döndürülür ki çağıran INFEASIBLE'ı (tanılama modunu
  * tetiklemeli) UNKNOWN/zaman aşımından (tanılama anlamsız) ayırt edebilsin.
+ *
+ * sureSaniye: arama bütçesi. Varsayılan 60 (önceki sabit değer; davranış
+ * değişmez). Parametre Karar 29 için eklendi ve deney/coz.py'deki
+ * sure_saniye ikiziyle birlikte gider: Geçiş 1 UNKNOWN dönerse ürün akışı
+ * (cozucu.worker.ts) bunu KALAN bütçeyle çağırıp "çizelge var mı?" sorusunu
+ * ayrıca sorar.
  */
-export async function coz(okul: Okul): Promise<FizibiliteSonucu> {
+export async function coz(
+  okul: Okul,
+  sureSaniye = 60.0,
+): Promise<FizibiliteSonucu> {
   const km = kurTemelDegiskenler(okul);
   sertKurallariUygula(km);
 
   const cozucu = new CpSolver();
   const durumHam = await cozucu.solve(km.model, {
-    maxTimeInSeconds: 60,
+    maxTimeInSeconds: sureSaniye,
     numSearchWorkers: 1,
   });
   const durum = durumAdi(cozucu, durumHam);

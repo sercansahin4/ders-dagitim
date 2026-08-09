@@ -16,11 +16,15 @@ eşdeğerlik altın/ayna testleriyle sabitli (Karar 22-23). Kanıt ekranı
 CANLIDA ve uçtan uca çalışıyor: tarayıcıda JSON yükleme → veri özeti →
 A-katmanı kapısı → çözüm → karne + iki eksenli (şube/öğretmen) çizelge;
 çözümsüzlükte "çözüm yok" yerine eyleme dönük Türkçe tanılama
-(Karar 24-27). Henüz kullanıcıya hazır, cilalı sürüm yok (MVP sürüyor).
+(Karar 24-27). Yüklenen okul tarayıcıda DÜZENLENEBİLİR (öğretmen, ders
+ataması, süre bütçesi) ve tekrar çözülür; taslak cihazda saklanır
+(Karar 28). Çözücü süreye sığmazsa da Türkçe konuşur: sert kurallara
+uyan ham bir çizelge arar ve ne yapılacağını söyler (Karar 29).
+Henüz kullanıcıya hazır, cilalı sürüm yok (MVP sürüyor).
 
 **Canlı demo (kanıt ekranı):** https://ders-dagitim.sercansahin4.workers.dev
 
 **Belgeler:** docs/ altında emsal analizi, kısıt envanteri,
-adlandırma sözleşmesi ve karar kaydı.
+adlandırma sözleşmesi, gerçek okul koşu bulguları ve karar kaydı.
 
 **Lisans:** GPL-3.0

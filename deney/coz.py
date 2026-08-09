@@ -51,18 +51,25 @@ def _gun_adi(gun: int) -> str:
     return GUN_ADLARI[gun - 1] if 1 <= gun <= len(GUN_ADLARI) else f"Gün {gun}"
 
 
-def coz(okul: Okul) -> tuple[cp_model.CpSolver, KisitModeli, Optional[Yerlesim], int]:
+def coz(
+    okul: Okul, sure_saniye: float = 60.0
+) -> tuple[cp_model.CpSolver, KisitModeli, Optional[Yerlesim], int]:
     """Modeli HIZLI modda kurar, sert kuralları (B1-B8) ekler ve amaç fonksiyonsuz fizibilite çözümünü çalıştırır.
 
     Dönüş: (çözücü, kısıt modeli, Yerlesim ya da None, çözüm durumu).
     Durum ayrıca döndürülür ki çağıran INFEASIBLE'ı (tanılama modunu
     tetiklemeli) UNKNOWN/zaman aşımından (tanılama anlamsız) ayırt edebilsin.
+
+    sure_saniye: arama bütçesi. Varsayılan 60 (önceki sabit değer; davranış
+    değişmez). Parametre Karar 29 için eklendi: kademeli çözümün Geçiş 1'i
+    UNKNOWN dönerse ürün akışı bu fonksiyonu KALAN bütçeyle çağırıp
+    "çizelge var mı?" sorusunu ayrıca sorar.
     """
     km = kur_temel_degiskenler(okul)
     sert_kurallari_uygula(km)
 
     cozucu = cp_model.CpSolver()
-    cozucu.parameters.max_time_in_seconds = 60
+    cozucu.parameters.max_time_in_seconds = sure_saniye
     durum = cozucu.Solve(km.model)
 
     if durum not in (cp_model.OPTIMAL, cp_model.FEASIBLE):

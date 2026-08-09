@@ -32,7 +32,8 @@ export type TaslakEylem =
   | { tip: "atamaBlokEkle"; atamaIndex: number; blok: number }
   | { tip: "atamaBlokSil"; atamaIndex: number; blokIndex: number }
   | { tip: "ogretmenYenidenAdlandir"; eski: string; yeni: string }
-  | { tip: "ogretmenSil"; ogretmen: string };
+  | { tip: "ogretmenSil"; ogretmen: string }
+  | { tip: "sureButcesi"; saniye: number };
 
 /** Bir isim listesinde eski adı (varsa) yenisiyle değiştirir. */
 function adDegistir(adlar: readonly string[], eski: string, yeni: string): string[] {
@@ -176,6 +177,18 @@ export function taslakReducer(okul: Okul, eylem: TaslakEylem): Okul {
       return {
         ...okul,
         ogretmenler: okul.ogretmenler.filter((o) => o.ad !== eylem.ogretmen),
+      };
+    case "sureButcesi":
+      // Karar 29: süre bütçesi artık kullanıcının elinde. Çözücüye 0 ya da
+      // negatif bütçe göndermek anlamsız olduğundan taban 1 sn'dir; üst sınır
+      // KONULMAZ (büyük okulda 300+ sn meşru bir tercihtir, bkz.
+      // docs/gercek-okul-bulgulari.md).
+      return {
+        ...okul,
+        kural_ayarlari: {
+          ...okul.kural_ayarlari,
+          sure_butcesi_saniye: Math.max(1, eylem.saniye),
+        },
       };
   }
 }

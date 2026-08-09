@@ -580,3 +580,80 @@ gösterir — invaryant UI hatasına dayanıklı.
 Durum: tsc temiz; web vitest 66/66 (taslak 10 + serileştirme altını 1 dahil);
 Python'a dokunulmadı (pytest 20/20 etkilenmez). Tarayıcı senaryosu (kaydet→
 refresh→geri yükle, düzenle→tekrar çöz, korumalı silme) elle doğrulanacak.
+
+## 29. UNKNOWN sessiz kalmayacak: fizibilite geri düşüşü + süre bütçesi kullanıcıda (24 Tem 2026)
+
+Tetikleyici: kullanıcı canlı ekranda GERÇEK okulunu (6 şube / 12 öğretmen /
+94 atama / 240 saat) çözdürdü ve 37,2 sn sonra ekranda yalnız
+`Çözücü durumu: UNKNOWN` gördü. Ne çizelge, ne karne, ne tanılama. Ürünün
+tezi "çözüm yok yerine nedenini söyle" iken, en olası gerçek kullanım
+anında ürün hiçbir şey söylemedi. Bu bir çökme değil, tasarlanan
+davranıştı — kusur tam olarak buradaydı.
+
+Teşhis (ölçüm, deney/ referansıyla):
+- Okul ÇÖZÜLEBİLİR: amaç fonksiyonsuz saf fizibilite tek işçiyle
+  28,1 sn'de OPTIMAL. Yani INFEASIBLE değil; tanılamanın susması doğru.
+- Bütçe matematiği tutmuyor: tarayıcı Geçiş 1'e 60 × 0,6 = 36 sn veriyor.
+  Tek bir geçerli çizelge bulmak (amaçsız, native) zaten 28,1 sn; Geçiş 1
+  bunun üstüne C1-C3 amacını koyuyor ve wasm native'den yavaş. 36 sn
+  içinde HİÇ çözüm bulunamıyor — UNKNOWN'ın anlamı budur.
+- Yapısal kilit tek öğretmende: O06 yük 16 / kapasite 16 = %100 (2 gün
+  dış okul + B3 garanti boş günü sonrası 2 gün, 16 dilim, 16 saat).
+  Ayrıca altı şubenin altısı da 40/40 dolu. Ayrıntı ve dürüst kayıtlar:
+  docs/gercek-okul-bulgulari.md.
+
+Kararlar:
+(a) **Geri düşüş, çözücüde değil ÜRÜN AKIŞINDA.** Geçiş 1 OPTIMAL/FEASIBLE/
+    INFEASIBLE dışında bir durum dönerse cozucu.worker.ts, coz() ile
+    (amaç fonksiyonsuz, yalnız sert kurallar) ikinci ve daha kolay soruyu
+    sorar: "çizelge var mı?". Bu mantık bilinçli olarak coz.ts'e
+    KONULMADI: coz.ts Python ikizidir (Karar 22) ve bu bir ürün kararıdır,
+    çözücü davranışı değil. tanila() tetiklemesi de aynı gerekçeyle zaten
+    worker'dadır — desen korunmuştur.
+(b) **Bütçe devri.** Geri düşüş, kullanılmayan kalan bütçeyle koşar
+    (`max(butce - sureUst, 1)`); Geçiş 2 bu hâlde zaten koşmaz. Kullanıcının
+    beklediği TOPLAM süre değişmez — "süre yetmedi" derken süreyi iki katına
+    çıkarmak kullanıcıyı ikinci kez cezalandırmak olurdu.
+(c) **coz()'a süre parametresi, İKİ tarafta birden.** deney/coz.py
+    `coz(okul, sure_saniye=60.0)` ve web/src/coz.ts `coz(okul, sureSaniye=60)`.
+    Varsayılan eski sabit değerdir; mevcut davranış ve altın testler
+    değişmez. Karar 22 disiplini: önce Python, sonra TS.
+(d) **Mesaj mantığı saf ve testli: web/src/durumRaporu.ts.** cizelge.ts /
+    taslak.ts deseni — React'sız, çözücüsüz, doğrudan vitest'lenir. İki hâl
+    ayrı dillendirilir, çünkü kullanıcının yapacağı iş farklıdır: çizelge
+    bulunduysa "kural ihlali yok ama iyileştirilmedi, kullanabilirsiniz";
+    bulunamadıysa "bu 'çözüm yok' DEĞİLDİR" + sıralı eylem önerisi. Her iki
+    hâlde de en sıkışık öğretmenler (yük/kapasite, %80 üstü) listelenir —
+    kullanıcıya nereye bakacağını gösterir. YENİ KURAL DEĞİLDİR: doluluk
+    hesabı model.ts'teki mevcut ogretmenKapasitesi'ni okur, kendi eşiğini
+    kural olarak dayatmaz; çıktısı bir tanı değil bir sıralamadır.
+(e) **Süre bütçesi kullanıcıya açıldı.** `sure_butcesi_saniye` veri
+    modelinde vardı ama arayüzde yoktu; taslakReducer'a `sureButcesi`
+    eylemi ve Çöz'ün yanına bir kutu eklendi. Taban 1 sn; ÜST SINIR YOK
+    (büyük/sıkışık okulda 300+ sn meşru bir tercihtir). (d) olmadan (e)
+    anlamsızdı (kullanıcı hangi sayıyı yazacağını bilmezdi), (e) olmadan
+    (d) anlamsızdı ("süreyi artırın" deyip artırma yolu vermemek).
+
+Kapsam DIŞI (bilinçli):
+- Varsayılan 60 sn bütçe DEĞİŞTİRİLMEDİ. Doğru değer tek-işçi/wasm
+  rejiminde ölçülmeden seçilemez; ölçüm tarayıcıda yapılacak, ayrı karar.
+- Python ve TS'in ÇÖZÜCÜ İŞÇİ SAYISI uyuşmazlığı kapatılmadı (bkz.
+  bulgular belgesi) — ayrı ve daha büyük bir karar.
+- A-katmanına "sınırda" (16/16 gibi) UYARI kavramı eklenmedi: bu yeni bir
+  kuraldır, Karar 22 gereği önce Python'a gider. İleride adayı ve muhtemelen
+  bu bulgunun en değerli ürünüdür — kullanıcıyı 36 saniye beklemeden uyarır.
+
+Dürüst kayıtlar:
+- Bu değişiklik gerçek okulu 60 saniyede ÇÖZMEZ. Yaptığı şey, çözemediğinde
+  doğru şeyi söylemek ve kullanıcıya çözmesi için gereken kolu (bütçe)
+  vermektir. Ölçüm gerçeği değişmedi, ürünün dürüstlüğü değişti.
+- Geçiş 1'in artan bütçelerle tam ölçümü (ilk çözüm kaç saniyede geliyor,
+  OPTIMAL kanıtı ne zaman) tamamlanamadı: ölçüm ortamı kaynak sınırına
+  takıldı. Karar bundan bağımsızdır — saf fizibilite ölçümü (28,1 sn) tek
+  başına bütçe matematiğini kanıtlıyor.
+- Geri düşüş çizelgesi ekranda "iyileştirilmedi" notuyla gösterilir ve
+  karne ÜRETİLMEZ: karne ceza dökümüdür, Geçiş 1 çözümü yoksa dökülecek
+  ceza da yoktur. Kalitesiz çizelgeye kaliteliymiş görüntüsü verilmez.
+
+Durum: tsc temiz; web vitest 76/76 (durumRaporu 8 + taslak süre bütçesi 2
+yeni); Python pytest 20/20 (coz.py imza değişikliği regresyon yaratmadı).

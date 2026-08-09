@@ -74,6 +74,30 @@ describe("taslakReducer — liste düzenleme", () => {
   });
 });
 
+describe("taslakReducer — süre bütçesi (Karar 29)", () => {
+  it("bütçeyi günceller ve diğer kural ayarlarına dokunmaz", () => {
+    const okul = ornekOkul();
+    const yeni = taslakReducer(okul, { tip: "sureButcesi", saniye: 300 });
+    expect(yeni.kural_ayarlari.sure_butcesi_saniye).toBe(300);
+    expect(okul.kural_ayarlari.sure_butcesi_saniye).toBe(60); // girdi korunur
+    expect(yeni.kural_ayarlari.b3_muaf_ogretmenler).toBe(
+      okul.kural_ayarlari.b3_muaf_ogretmenler,
+    );
+  });
+
+  it("0 ve negatif bütçeyi 1 saniyeye çeker (çözücüye anlamsız değer gitmez)", () => {
+    const okul = ornekOkul();
+    expect(
+      taslakReducer(okul, { tip: "sureButcesi", saniye: 0 }).kural_ayarlari
+        .sure_butcesi_saniye,
+    ).toBe(1);
+    expect(
+      taslakReducer(okul, { tip: "sureButcesi", saniye: -5 }).kural_ayarlari
+        .sure_butcesi_saniye,
+    ).toBe(1);
+  });
+});
+
 describe("referans bütünlüğü — yeniden adlandırma dört yeri birlikte günceller", () => {
   it("ders atamasındaki ve b3 muafiyetindeki referansı taşır", () => {
     const okul = ornekOkul();

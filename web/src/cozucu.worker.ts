@@ -11,8 +11,9 @@
  */
 import { okulYukleMetinden } from "./model.js";
 import type { Okul, Yerlesim } from "./model.js";
-import { kademeliCoz } from "./coz.js";
+import { coz, kademeliCoz } from "./coz.js";
 import { cezalariHesapla, karneMetni } from "./karne.js";
+import { sureYetmediMesaji } from "./durumRaporu.js";
 import { tanila } from "./tanilama.js";
 
 /**
@@ -40,6 +41,14 @@ export interface CozumMesaji {
   karne: string | null;
   /** Çözümsüzlükte (INFEASIBLE) tanılama modunun Türkçe eylem raporu. */
   tanilamaRaporu: string | null;
+  /** UNKNOWN'da (süre yetmedi) eyleme dönük Türkçe rapor — Karar 29. */
+  sureRaporu: string | null;
+  /**
+   * Geçiş 1 UNKNOWN dönüp fizibilite geri düşüşü çalıştıysa true. Ekrandaki
+   * çizelgenin "sert kuralları sağlar ama iyileştirilmemiş" olduğunu bildirir;
+   * bu hâlde karne üretilmez (ceza dökümü Geçiş 1 çözümüne aittir, yoktur).
+   */
+  fizibiliteGeriDusus: boolean;
   okul: Okul;
   yerlesim: Yerlesim | null;
 }
@@ -63,9 +72,40 @@ self.onmessage = async (olay: MessageEvent<CozIstegi>) => {
 
     // Çözümsüzlük kanıtlandıysa (INFEASIBLE) tanılama modunda yeniden
     // kurulup Türkçe eylem raporu üretilir (Karar 13 akışı). UNKNOWN
-    // (süre bütçesi yetmedi) tanılanmaz: çözümsüzlük kanıtı yoktur.
+    // tanılanmaz: unsat core yoktur, çünkü çözümsüzlük kanıtı yoktur.
     const tanilamaRaporu =
       sonuc.durumUst === "INFEASIBLE" ? await tanila(okul) : null;
+
+    // --- Karar 29: UNKNOWN artık sessiz değil ------------------------------
+    // Geçiş 1 süre bütçesine sığmazsa kullanıcıya "UNKNOWN" demek bir cevap
+    // değildir. O hâlde ürün ikinci ve DAHA KOLAY soruyu sorar: amaç
+    // fonksiyonsuz, yalnız sert kurallı bir çizelge var mı? (coz(); C1-C8
+    // olmadığı için aynı bütçede çok daha ulaşılabilir.)
+    //
+    // Bütçe: Geçiş 2 bu hâlde zaten koşmaz, o yüzden kullanılmayan kalan
+    // bütçe geri düşüşe verilir — kullanıcının beklediği TOPLAM süre
+    // değişmez. Alt sınır 1 sn (kademeliCoz'un Geçiş 2 kuralıyla aynı).
+    //
+    // Bu akış bilinçli olarak coz.ts'te DEĞİL burada durur: coz.ts Python
+    // ikizidir (Karar 22) ve bu bir ürün akışı kararıdır, çözücü davranışı
+    // değil. tanila() tetiklemesi de aynı gerekçeyle burada.
+    const sureYetmedi =
+      sonuc.durumUst !== "OPTIMAL" &&
+      sonuc.durumUst !== "FEASIBLE" &&
+      sonuc.durumUst !== "INFEASIBLE";
+
+    let yerlesim = sonuc.yerlesim;
+    let sureRaporu: string | null = null;
+    let fizibiliteGeriDusus = false;
+
+    if (sureYetmedi) {
+      const butce = okul.kural_ayarlari.sure_butcesi_saniye;
+      const kalan = Math.max(butce - sureSn, 1.0);
+      const geri = await coz(okul, kalan);
+      fizibiliteGeriDusus = geri.yerlesim !== null;
+      yerlesim = geri.yerlesim;
+      sureRaporu = sureYetmediMesaji(okul, fizibiliteGeriDusus, butce);
+    }
 
     const mesaj: CozumMesaji = {
       tip: "sonuc",
@@ -73,11 +113,13 @@ self.onmessage = async (olay: MessageEvent<CozIstegi>) => {
       durumAlt: sonuc.durumAlt,
       kilitDegeri: sonuc.kilitDegeri,
       gecis2Kullanildi: sonuc.gecis2Kullanildi,
-      sureSn,
+      sureSn: (performance.now() - baslangic) / 1000,
       karne,
       tanilamaRaporu,
+      sureRaporu,
+      fizibiliteGeriDusus,
       okul,
-      yerlesim: sonuc.yerlesim,
+      yerlesim,
     };
     self.postMessage(mesaj);
   } catch (hata) {
