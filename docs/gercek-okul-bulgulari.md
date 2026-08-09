@@ -144,8 +144,43 @@ Koşu kaydı (doldurulacak):
 |---|---|---|---|---|---|
 | 60 | UNKNOWN | 37,2 | *(Karar 29 öncesi ölçüm)* | hayır | — |
 | 60 | UNKNOWN | 47,6 | **evet — çizelge bulundu** | hayır (tasarım gereği) | — |
-| 300 | | | | | |
+| 300 | FEASIBLE / Geçiş 2 FEASIBLE | 300,1 (bütçe tamamen tüketildi) | hayır | **evet** | 4 / 2 / 0 — kilit 312830 |
 | 150 | | | | | |
+
+Alt katman (B=300 koşusu): C4=0, C5=6, C6=28, C7=21, C8=97.
+
+### Bulgu 6 — B=300'de çözülüyor, ama HİÇBİR katman OPTIMAL kanıtlamıyor
+
+B\* ≤ 300 kesinleşti: Geçiş 1, 180 sn'lik payıyla bir çözüm buldu, kilitledi,
+Geçiş 2 kalan 120 sn'de alt katmanı iyileştirdi. Ürün ilk kez gerçek okulda
+uçtan uca çalıştı — çizelge + karne.
+
+Ama iki durum da **FEASIBLE**, OPTIMAL değil; toplam süre 300,1 yani bütçe
+sonuna kadar tüketildi. Yani **B\*\* > 300** ve bu okulda karne "en iyi
+çizelgenin dökümü" DEĞİL, "bulunabilen çizelgenin dökümü"dür. C değerleri
+daha fazla süreyle düşebilir; ne kadar düşeceğini bilmiyoruz.
+
+Bu, Karar 29'un dürüstlük ilkesinin doğal devamıdır ve arayüzde karşılığı
+yoktur: ekran FEASIBLE ile OPTIMAL'i ayırt edilebilir biçimde söylemiyor.
+İleride adayı.
+
+**Kilit değerinin okunuşu.** `kilitDegeri`, üst katmanın (C1-C3) baskınlık
+ağırlıklı amaç değeridir (`baskinlikAgirliklari`: her kuralın ağırlığı, alt
+öncelikli kuralların ağırlıklı tavanı + 1). Yani tek bir sayıya kodlanmış
+sözlüksel (C1, C2, C3) sıralamasıdır: **küçük = daha iyi.** 312830 ↔ (4, 2, 0).
+
+Karşılaştırma kuralı: farklı bütçelerin C4-C8 değerleri ancak **kilit değeri
+eşitse** adil karşılaştırılır. Kilit farklıysa Geçiş 2 başka bir kısıt altında
+çalışmıştır.
+
+### Ölçüm maliyeti üzerine not (İleride adayı)
+
+Geçiş 1 OPTIMAL kanıtlayamadığı sürece her koşu bütçenin TAMAMINI tüketir;
+bu yüzden B\*'ı ikili aramayla bulmak koşu başına B saniye demektir. Ucuzu
+var: çözücüye çözüm geri çağırması takıp **ilk çözümün bulunduğu anı**
+ölçmek. Tek koşuda kesin cevap verir. Ama `coz.ts` Python ikizidir
+(Karar 22), enstrümantasyon iki tarafa birden gider — ayrı ve daha büyük bir
+iştir. Bugünkü ölçüm ikili aramayla bitirilir.
 
 ### Bulgu 5 — native çapa kullanıcının makinesine taşınamaz
 
