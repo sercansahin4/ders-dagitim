@@ -113,3 +113,47 @@ gereken sürenin altında.** Karar 29'un bütçe matematiği buradan çıktı.
 Eksik ölçüm (yapılmalı, tarayıcıda): tek-işçi/wasm rejiminde ilk çözüm
 kaç saniyede geliyor, OPTIMAL kanıtı hangi bütçede geliyor? Varsayılan
 `sure_butcesi_saniye` bu ölçülmeden değiştirilmemelidir.
+
+## Ölçüm protokolü — süre bütçesi (Karar 30 adayı)
+
+Aranan iki sayı, ikisi de TOPLAM bütçe B cinsinden (varsayılan da o
+birimde yazılır; Geçiş 1 zaten 0,6 × B alır, Karar 18):
+
+- **B\*** : Geçiş 1'in ilk kez çizelge verdiği en küçük bütçe (FEASIBLE).
+- **B\*\*** : Geçiş 1'in OPTIMAL kanıtladığı en küçük bütçe.
+
+**Yöntem: ikili arama, doğrusal tarama değil.** Gerekçe: tek işçili
+CP-SAT determinist (Karar 20) ve süre limiti tek yönlüdür — B çalışıyorsa
+B+ de çalışır. Monotonluk ikili aramayı meşru kılar; aynı B'de tekrar
+koşmaya gerek yoktur. Her koşu B saniye beklemek demek olduğundan koşu
+sayısı doğrudan maliyettir.
+
+| Sıra | B (sn) | Gerekçe |
+|---|---|---|
+| 1 | 300 | Üst çapa. Burada da UNKNOWN gelirse varsayılan-bütçe yolu ölüdür; iş A-katmanı uyarısına (Bulgu 3) döner. |
+| 2 | 150 | Bilinen 60 (UNKNOWN) ile 300 arasını böler. |
+| 3+ | ikili arama | Aralık ±25 sn'ye inince dur. |
+
+**Ortam koşulu:** wasm'da süre limiti duvar saatidir; makine yükü sonucu
+kaydırır. Şarja takılı (macOS pilde CPU kısar), tek sekme, başka ağır
+uygulama kapalı. Yoksa ölçülen şey okul değil, makinedir.
+
+Koşu kaydı (doldurulacak):
+
+| B (sn) | durumUst | Ekrandaki süre | Geri düşüş? | Karne geldi mi | C1 / C2 / C3 |
+|---|---|---|---|---|---|
+| 60 | UNKNOWN | 37,2 | *(Karar 29 öncesi ölçüm)* | hayır | — |
+| 300 | | | | | |
+| 150 | | | | | |
+
+**Varsayılan seçimi — ölçümden SONRA verilecek karar.** Varsayılanı B\*'a
+eşitlemek yanlış olur: ölçüm tek okul, tek makine. Öneri B\* × ~1,5,
+insan okunur bir sayıya yuvarlanmış, ve "bu sayı bir söz değil, bir
+başlangıç noktasıdır; kol kullanıcıda" dürüst kaydıyla. Okul
+büyüklüğünden formülle bütçe türetmek (atama sayısı × katsayı) N=1'den
+genellemedir — "önce somut, sonra genelleme" gereği İleride'ye park.
+
+**Dürüst çerçeve:** varsayılanı büyütmek aslında bir kullanılabilirlik
+boşluğunu yamar — kullanıcı 300 sn'yi hiçbir geri bildirim almadan
+bekler. Asıl çözüm ilerleme göstergesi / erken durdurmadır; ayrı ve daha
+büyük bir iştir, bu ölçümle karıştırılmamalıdır.
