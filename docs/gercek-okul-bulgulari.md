@@ -143,8 +143,38 @@ Koşu kaydı (doldurulacak):
 | B (sn) | durumUst | Ekrandaki süre | Geri düşüş? | Karne geldi mi | C1 / C2 / C3 |
 |---|---|---|---|---|---|
 | 60 | UNKNOWN | 37,2 | *(Karar 29 öncesi ölçüm)* | hayır | — |
+| 60 | UNKNOWN | 47,6 | **evet — çizelge bulundu** | hayır (tasarım gereği) | — |
 | 300 | | | | | |
 | 150 | | | | | |
+
+### Bulgu 5 — native çapa kullanıcının makinesine taşınamaz
+
+İkinci 60 sn koşusu (Karar 29 canlıda, kullanıcının Mac'i) fizibilite geri
+düşüşünün ÇALIŞTIĞINI gösterdi: Geçiş 1 UNKNOWN döndü, geri düşüş sert
+kurallara uyan bir çizelge buldu, ürün iki durumu da doğru dillendirdi.
+
+Yan ürün olarak bir sayı çıktı. **Çıkarım, ölçüm değil** — ekran yalnız
+toplam süreyi gösteriyor, iki evreyi ayrı ayrı değil:
+
+```
+toplam                       47,6 sn
+− kademeliCoz (Geçiş 1, 0,6 × 60 = 36 sn bütçe; ilk koşuda 37,2 ölçüldü)
+= fizibilite geri düşüşü   ≈ 10,4 sn
+```
+
+Yani amaç fonksiyonsuz saf fizibilite, kullanıcının Mac'inde wasm/tek
+işçiyle **~10 saniyede** çözülüyor. Bu belgede çapa olarak kullanılan
+**28,1 sn'lik native ölçüm, geliştirme sandbox'ında (kaynak sınırlı Linux)
+alınmıştı** ve kullanıcının makinesinden ~2,7 kat yavaş çıkıyor.
+
+Sonuç, Bulgu 4'ü genişletir: iki gerçekleme yalnız İŞÇİ SAYISI rejiminde
+değil, DONANIM rejiminde de ayrışıyor. Ürün kararlarını besleyecek tek
+geçerli ölçüm, kullanıcının makinesinde tarayıcıda alınandır; native
+sayılar yön gösterir, eşik belirlemez.
+
+Doğrudan sonucu: bu okulda darboğaz fizibilite değil, C1-C3 amaç
+fonksiyonudur. 36 saniyenin ~10'u zaten yetiyor olmalıydı; kalan 26 saniye
+amaç fonksiyonuna yetmiyor. B\* tahminini aşağı çeker.
 
 **Varsayılan seçimi — ölçümden SONRA verilecek karar.** Varsayılanı B\*'a
 eşitlemek yanlış olur: ölçüm tek okul, tek makine. Öneri B\* × ~1,5,
