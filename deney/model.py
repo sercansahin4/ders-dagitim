@@ -111,7 +111,7 @@ class KuralAyarlari:
     # Kademeli çözümün (iki geçişli, kisit-envanteri §4-C) süre bütçesi:
     # toplam saniye ile üst katman geçişine ayrılan oran. Geçiş 1 payını
     # erken bitirirse artan süre Geçiş 2'ye devreder (coz.kademeli_coz).
-    sure_butcesi_saniye: float = 60.0
+    sure_butcesi_saniye: float = 240.0
     ust_katman_sure_orani: float = 0.6
     # Bu kümede adı geçen C kuralları (örn. {"C7"}) hiç kurulmaz: ceza
     # değişkeni yaratılmaz, katman toplamına ve baskınlık ağırlığı

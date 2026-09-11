@@ -143,7 +143,7 @@ export function varsayilanKuralAyarlari(): KuralAyarlari {
     b3_muaf_ogretmenler: new Set(),
     sayisal_dilim_cezasi: [0, 0, 0, 0, 1, 2, 3, 4],
     sanat_spor_dilim_cezasi: [4, 3, 2, 1, 0, 0, 0, 0],
-    sure_butcesi_saniye: 60.0,
+    sure_butcesi_saniye: 240.0,
     ust_katman_sure_orani: 0.6,
     kapali_kurallar: new Set(),
   };

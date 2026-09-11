@@ -83,9 +83,12 @@ describe("taslakReducer — liste düzenleme", () => {
 describe("taslakReducer — süre bütçesi (Karar 29)", () => {
   it("bütçeyi günceller ve diğer kural ayarlarına dokunmaz", () => {
     const okul = ornekOkul();
+    const onceki = okul.kural_ayarlari.sure_butcesi_saniye;
     const yeni = taslakReducer(okul, { tip: "sureButcesi", saniye: 300 });
     expect(yeni.kural_ayarlari.sure_butcesi_saniye).toBe(300);
-    expect(okul.kural_ayarlari.sure_butcesi_saniye).toBe(60); // girdi korunur
+    // Varsayılan bir sabit değil karar konusudur (Karar 30: 60 -> 240);
+    // test onu sabit yazmaz, değişmezliği başlangıç değeriyle ölçer.
+    expect(okul.kural_ayarlari.sure_butcesi_saniye).toBe(onceki);
     expect(yeni.kural_ayarlari.b3_muaf_ogretmenler).toBe(
       okul.kural_ayarlari.b3_muaf_ogretmenler,
     );

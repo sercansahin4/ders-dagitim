@@ -658,13 +658,67 @@ Dürüst kayıtlar:
 Durum: tsc temiz; web vitest 76/76 (durumRaporu 8 + taslak süre bütçesi 2
 yeni); Python pytest 20/20 (coz.py imza değişikliği regresyon yaratmadı).
 
-## 30. (ayrılmış — varsayılan süre bütçesi; KARAR VERİLMEDİ)
+## 30. Varsayılan süre bütçesi 60 -> 240 sn (GEÇİCİ) (11 Eyl 2026)
 
-Bu numara, varsayılan `sure_butcesi_saniye` kararına ayrılmıştır. Ölçüm
-tamamlandı (bkz. docs/gercek-okul-bulgulari.md, koşu kaydı ve Bulgu 7) ve
-güncellenmiş öneri aynı belgedeki "Karar 30 adayı" bölümündedir; kullanıcı
-onayı beklediği için karar yazılmamıştır. Numara, kayıt sırası bozulmasın
-diye boş bırakıldı.
+`KuralAyarlari.sure_butcesi_saniye` varsayılanı 60'tan **240 saniyeye**
+çıkarılır. Sayı bir eşik değil, gürültüsü ölçülmemiş bir dağılımın üstünde
+seçilmiş bir paydır ve GEÇİCİ etiketiyle konur.
+
+**Dayanak (ölçüm, docs/gercek-okul-bulgulari.md koşu kaydı).** Kullanıcının
+gerçek okulunda B=60 iki bağımsız koşuda UNKNOWN verdi: ürün en olası
+gerçek kullanımında hiçbir çizelge üretemiyordu. İkili aramayla
+B\* (Geçiş 1'in ilk kez çizelge verdiği en küçük bütçe) **(150, 187]**
+aralığına sıkıştırıldı; B\*\* (OPTIMAL kanıtı) > 300 olarak iki koşuda
+doğrulandı. 240, gözlenen eşiğin üst ucunun (187) rahat üstündedir.
+
+**Neden 300 değil.** Bulgu 6: Geçiş 1 OPTIMAL kanıtlayamadığı sürece her
+başarılı koşu bütçenin TAMAMINI tüketir (ölçülen süreler 187,1 / 225,1 /
+300,2 — bütçeye birebir eşit). Yani varsayılan "en fazla şu kadar" değil,
+"her seferinde tam olarak bu kadar bekleyeceksiniz" demektir. 300, her
+koşuda 60 saniye fazladan bekletir ve Bulgu 7'ye göre bu 60 saniye
+ölçülebilir bir kalite getirmez (187 ile 225 birebir aynı karneyi verdi;
+300 alt katmanda daha kötü çıktı).
+
+**Neden 180 değil.** 180, ölçüm belirsizlik aralığının (150-187) içinde
+kalır; biraz yavaş bir makinede veya biraz daha sıkışık bir okulda geri
+düşüşe düşer.
+
+**Bulgu 7'nin bu karara etkisi (dürüst çerçeve).** Aynı veri, aynı sürüm,
+aynı makine ve aynı bütçeyle alınan iki koşu farklı sonuç verdi; süre
+limiti duvar saatidir ve Karar 20'nin determinizm bonusu bu limit altında
+geçerli değildir. Bu yüzden "B\* şudur" demek yanıltıcı olurdu. Varsayılan,
+tek okul ve tek makineden gelen bir gözlemin üstüne konmuş paydır; bir söz
+değil başlangıç noktasıdır ve kol (Karar 29e) kullanıcıdadır. Ürün metni
+zaten doğru dili kullanıyor: "büyük veya sıkışık okullarda artırın".
+
+**Uygulama.** Karar 22 sırası: önce Python (`deney/model.py`
+`KuralAyarlari.sure_butcesi_saniye` varsayılanı), sonra TypeScript
+(`web/src/model.ts` `varsayilanKuralAyarlari`). Serileştirme altını
+(`veri/altin/okul_serilestirme_beklenen.json`) varsayılanı gömdüğü için
+Python üreticisiyle YENİDEN ÜRETİLDİ. `web/test/taslak.test.ts`'teki bütçe
+testi varsayılanı sabit yazıyordu; varsayılandan bağımsız hâle getirildi
+(değişmezliği başlangıç değeriyle ölçüyor).
+
+**Yan etki (bilinçli, izlenecek).** `tanilama` doğrulama döngüsü kendi
+bütçesini `max(10, sure_butcesi_saniye / 3)` ile türetiyor; varsayılan
+değişince bu tavan 20 sn'den 80 sn'ye çıkar. Tavan yalnız çözüm uzarsa
+bağlar, küçük gevşetme yeniden-çözümleri saniyeler sürer; yine de
+çözümsüz bir okulda tanılama raporunun beklemesi uzayabilir. Ayrı karar
+konusu değil, gözlem konusudur.
+
+**Kapsam dışı.** (a) Okul büyüklüğünden formülle bütçe türetmek (atama
+sayısı × katsayı) N=1'den genellemedir, "İleride"de kalır. (b) Asıl çözüm
+bu sabit değil: ilk çözüm anını ölçen çözüm geri çağırması, ilerleme
+göstergesi ve iyileşme durunca erken durdurma. Bu okulda ~187 saniyeden
+sonra geçen her saniye ölçülebilir bir kazanç vermedi; sabiti büyütmek o
+boşluğu yamar, kapatmaz. Ayrı karar(lar).
+
+**Doğrulama.** tsc temiz; vitest 9 dosya / 98 test yeşil (serileştirme
+altını yeniden üretilmiş Python çıktısına karşı geçti). `pytest` bu
+oturumda KOŞULAMADI: kullanıcının makinesindeki kabukta ortools kurulu
+değil. Python tarafındaki değişiklik tek bir varsayılan sabittir ve altın
+üreticisi Python'un kendisiyle çalıştırılmıştır; yine de bir sonraki
+Claude Code oturumu `pytest` ile teyit etmelidir.
 
 ## 31. Veri girişi ikinci artış: sıfırdan okul kurma + A-katmanının "kalan işler" dili (11 Eyl 2026)
 

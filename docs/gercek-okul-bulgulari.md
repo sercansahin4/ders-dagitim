@@ -284,7 +284,11 @@ zaten yazılı (bkz. "Ölçüm maliyeti üzerine not"): çözücüye çözüm ge
 çağırması takıp ilk çözümün bulunduğu anı ölçmek. Bulgu 7 onu "ucuz
 seçenek" olmaktan çıkarıp tek güvenilir yol hâline getiriyor.
 
-## Karar 30 adayı — güncellenmiş öneri (karar VERİLMEDİ)
+## Karar 30 adayı — KARARA BAĞLANDI (11 Eyl 2026)
+
+> Bu bölüm bir öneriydi; kullanıcı onayıyla **Karar 30** olarak yazıldı
+> (varsayılan 60 -> 240 sn, GEÇİCİ etiketiyle). Gerekçenin tamamı ve yan
+> etkileri için docs/kararlar.md, Karar 30. Aşağısı önerinin özgün metnidir.
 
 Önceki öneri (B\* × ~1,5 → 240 sn) Bulgu 7'den ÖNCE yazılmıştı. Bulgu 7
 sonrası öneri şudur; onaya sunulmadan uygulanmamalıdır:
