@@ -15,7 +15,7 @@ import ornekOkulMetni from "../../deney/veri/ornek_okul.json?raw";
 import type { CozIstegi, CozumMesaji, HataMesaji } from "./cozucu.worker.js";
 import { aKatmaniDogrulama, okulKaydetMetne, okulYukleMetinden } from "./model.js";
 import type { Okul, Yerlesim } from "./model.js";
-import { taslakReducer, type TaslakEylem } from "./taslak.js";
+import { sonucBayatMi, taslakReducer, type TaslakEylem } from "./taslak.js";
 import { taslakKaydet, taslakYukle } from "./taslakDepo.js";
 import { CizelgeTablosu } from "./CizelgeTablosu.js";
 import { OgretmenDuzenle } from "./OgretmenDuzenle.js";
@@ -52,6 +52,11 @@ export function Uygulama() {
   const [gecenSn, setGecenSn] = useState(0);
   const [cikti, setCikti] = useState<string | null>(null);
   const [cizelge, setCizelge] = useState<Cizelge | null>(null);
+  // Sonucu üreten taslağın REFERANSI: veri sonradan değiştiyse sonuç
+  // bayattır (silinmez, işaretlenir). Worker'ın döndürdüğü m.okul metinden
+  // yeniden kurulduğu için referans kıyasına uygun değildir; bu yüzden
+  // çözüm anındaki taslak ayrıca tutulur.
+  const [cozulenTaslak, setCozulenTaslak] = useState<Okul | null>(null);
   const baslangicRef = useRef(0);
 
   // Açılışta cihazda kayıtlı taslak varsa geri yükleme için hazır tut.
@@ -84,6 +89,7 @@ export function Uygulama() {
   function veriYukle(ad: string, okulMetni: string) {
     setCikti(null);
     setCizelge(null);
+    setCozulenTaslak(null);
     try {
       const okul = okulYukleMetinden(okulMetni);
       setKaynakAd(ad);
@@ -128,6 +134,7 @@ export function Uygulama() {
     setCalisiyor(true);
     setCikti(null);
     setCizelge(null);
+    setCozulenTaslak(taslak);
     baslangicRef.current = performance.now();
     setGecenSn(0);
 
@@ -168,6 +175,7 @@ export function Uygulama() {
   }
 
   const cozulebilir = taslak !== null && aKatmaniHatalari.length === 0 && !calisiyor;
+  const sonucBayat = sonucBayatMi(cozulenTaslak, taslak);
 
   return (
     <main>
@@ -244,6 +252,13 @@ export function Uygulama() {
       {calisiyor && (
         <p>
           Çözülüyor… {gecenSn.toFixed(1)} sn — sayaç akıyorsa arayüz donmuyor demektir.
+        </p>
+      )}
+      {sonucBayat && (cizelge !== null || cikti !== null) && (
+        <p>
+          <strong>Dikkat:</strong> Aşağıdaki sonuç, veri değiştirilmeden önce
+          alındı — artık güncel değil. Karşılaştırabilesin diye ekranda
+          bırakıldı; yeni veriye göre sonucu görmek için tekrar çözün.
         </p>
       )}
       {cizelge !== null && cizelge.ham && (

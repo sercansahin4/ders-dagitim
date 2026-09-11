@@ -134,6 +134,27 @@ export function ogretmenSilinebilir(
   return { silinebilir: true, neden: null };
 }
 
+/**
+ * Ekrandaki sonucun, onu üreten veriden sonra taslağın değişip
+ * değişmediğini söyler (Kusur 1, 11 Eyl 2026 kabul testi).
+ *
+ * Neden referans karşılaştırması yeterli: taslakReducer DEĞİŞMEZDİR —
+ * her gerçek düzenleme yeni bir Okul nesnesi döndürür, reddedilen bir
+ * düzenleme (ör. korumalı silme) ise aynı nesneyi döndürür. Böylece
+ * "veri değişti mi" sorusu derin karşılaştırma olmadan, yanlış pozitif
+ * üretmeden yanıtlanır.
+ *
+ * Sonuç SİLİNMEZ, yalnız bayat işaretlenir: kullanıcının elindeki tek
+ * kıyas malzemesi odur (bkz. docs/gercek-okul-bulgulari.md, Kusur 1).
+ */
+export function sonucBayatMi(
+  cozulenTaslak: Okul | null,
+  taslak: Okul | null,
+): boolean {
+  if (cozulenTaslak === null || taslak === null) return false;
+  return cozulenTaslak !== taslak;
+}
+
 /** Taslak üzerinde tek bir düzenleme eylemini uygular (değişmez). */
 export function taslakReducer(okul: Okul, eylem: TaslakEylem): Okul {
   switch (eylem.tip) {

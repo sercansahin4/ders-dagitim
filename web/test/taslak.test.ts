@@ -10,6 +10,7 @@ import {
   ogretmenKullanimlari,
   ogretmenSilinebilir,
   ogretmenYenidenAdlandir,
+  sonucBayatMi,
   taslakReducer,
 } from "../src/taslak.js";
 
@@ -161,5 +162,40 @@ describe("ogretmenSil eylemi — invaryant UI hatasına dayanıklı", () => {
     const yeni = taslakReducer(okul, { tip: "ogretmenSil", ogretmen: "Ayşe" });
     expect(yeni.ogretmenler.some((o) => o.ad === "Ayşe")).toBe(true);
     expect(yeni).toBe(okul);
+  });
+});
+
+describe("sonucBayatMi — ekrandaki sonuç güncel mi (Kusur 1)", () => {
+  it("sonuç yoksa veya taslak yoksa bayat değildir", () => {
+    const okul = ornekOkul();
+    expect(sonucBayatMi(null, okul)).toBe(false);
+    expect(sonucBayatMi(okul, null)).toBe(false);
+    expect(sonucBayatMi(null, null)).toBe(false);
+  });
+
+  it("taslak hiç değişmediyse bayat değildir", () => {
+    const okul = ornekOkul();
+    expect(sonucBayatMi(okul, okul)).toBe(false);
+  });
+
+  it("gerçek bir düzenlemeden sonra bayattır", () => {
+    const okul = ornekOkul();
+    const sonra = taslakReducer(okul, {
+      tip: "ogretmenBosGun",
+      ogretmen: "Ayşe",
+      bosGun: 2,
+    });
+    expect(sonra).not.toBe(okul);
+    expect(sonucBayatMi(okul, sonra)).toBe(true);
+  });
+
+  it("REDDEDİLEN bir düzenlemeden sonra bayat DEĞİLDİR", () => {
+    // Korumalı silme değişmez döndürür: veri değişmediyse sonuç da bayat
+    // değildir. Derin karşılaştırma yapsaydık bu ayrım kaybolmazdı ama
+    // pahalı olurdu; referans kıyası bunu bedava veriyor.
+    const okul = ornekOkul();
+    const sonra = taslakReducer(okul, { tip: "ogretmenSil", ogretmen: "Ayşe" });
+    expect(sonra).toBe(okul);
+    expect(sonucBayatMi(okul, sonra)).toBe(false);
   });
 });
