@@ -145,9 +145,22 @@ Koşu kaydı (doldurulacak):
 | 60 | UNKNOWN | 37,2 | *(Karar 29 öncesi ölçüm)* | hayır | — |
 | 60 | UNKNOWN | 47,6 | **evet — çizelge bulundu** | hayır (tasarım gereği) | — |
 | 300 | FEASIBLE / Geçiş 2 FEASIBLE | 300,1 (bütçe tamamen tüketildi) | hayır | **evet** | 4 / 2 / 0 — kilit 312830 |
-| 150 | | | | | |
+| 150 | UNKNOWN | 102,1 (geri düşüş erken bitirdi) | **evet — çizelge bulundu** | hayır (tasarım gereği) | — |
+| 187 | FEASIBLE / Geçiş 2 FEASIBLE | 187,1 | hayır | **evet** | 4 / 5 / 0 — kilit 313445 |
+| 225 | FEASIBLE / Geçiş 2 FEASIBLE | 225,1 | hayır | **evet** | 4 / 5 / 0 |
+| 300 | FEASIBLE / Geçiş 2 FEASIBLE | 300,2 | hayır | **evet** | 4 / 5 / 0 |
 
-Alt katman (B=300 koşusu): C4=0, C5=6, C6=28, C7=21, C8=97.
+Alt katman (9 Ağu B=300 koşusu): C4=0, C5=6, C6=28, C7=21, C8=97.
+
+Son dört satır 11 Eyl 2026 koşularıdır (kullanıcının Mac'i, Chrome; tarayıcı
+otomasyonu altında alındı — Bulgu 7'deki çekinceye bakınız). Alt katmanları:
+B=187 ve B=225 birebir aynı (C4=0, C5=5, C6=29, C7=21, C8=127);
+B=300 ise C4=0, C5=5, C6=29, C7=22, C8=124.
+
+**B\* bugünkü koşullarda (150, 187] aralığına sıkıştırıldı:** 150'de Geçiş 1
+çizelge veremedi (geri düşüş verdi), 187'de verdi; protokolün ±25 sn hedefi
+sayısal olarak sağlandı. Ama Bulgu 7 bu sayının tekrarlanabilirliğini
+tartışmalı kılıyor. **B\*\* > 300** artık iki bağımsız koşuda doğrulanmıştır.
 
 ### Bulgu 6 — B=300'de çözülüyor, ama HİÇBİR katman OPTIMAL kanıtlamıyor
 
@@ -222,3 +235,111 @@ genellemedir — "önce somut, sonra genelleme" gereği İleride'ye park.
 boşluğunu yamar — kullanıcı 300 sn'yi hiçbir geri bildirim almadan
 bekler. Asıl çözüm ilerleme göstergesi / erken durdurmadır; ayrı ve daha
 büyük bir iştir, bu ölçümle karıştırılmamalıdır.
+
+
+## Bulgu 7 — aynı veri, aynı bütçe, farklı sonuç (ölçüm yönteminin sınırı)
+
+9 Ağustos ve 11 Eylül'de AYNI okul, AYNI depo sürümü (main @ 9 Ağu), AYNI
+makine ve AYNI B=300 bütçesiyle koşuldu. Sonuçlar farklı:
+
+| Koşu | C1 / C2 / C3 | Kilit | Alt katman (C4..C8) |
+|---|---|---|---|
+| 9 Ağu | 4 / 2 / 0 | **312830** | 0 / 6 / 28 / 21 / 97 |
+| 11 Eyl | 4 / 5 / 0 | **313445** | 0 / 5 / 29 / 22 / 124 |
+
+Kilit küçük olan daha iyidir (Bulgu 6): 11 Eylül koşusu üst katmanda
+9 Ağustos'takinden KÖTÜ bir noktada durdu.
+
+**Veri farkı elenmiştir.** Tarayıcıdaki taslak (IndexedDB) ile
+`~/ders-dagitim-ham-veri/okul_anonim.json` alan alan karşılaştırıldı: ders
+atamaları, dersler, şubeler ve ızgara üzerinde aynı kanonikleştirmeyle
+hesaplanan sağlama iki tarafta da 6143 karakter / [507650, 37803]; öğretmen
+kapanışları, boş gün tercihleri ve kural_ayarlari birebir aynı. Taslakta
+fazladan yalnız `sure_butcesi_saniye` (300) ve varsayılan alanlar var —
+bunlar çözücü ayarı, model girdisi değil.
+
+**Nedeni: süre limiti duvar saatidir.** Bu belgenin ortam koşulu notu zaten
+uyarıyordu; şimdi sonucu ölçüldü. Karar 20'nin "tek işçi = determinizm
+bonusu" ifadesi DETERMİNİST BİR LİMİT altında geçerlidir; duvar saati limiti
+altında değildir. Makine hızı/yükü değişince CP-SAT arama ağacında başka bir
+yerde durur.
+
+**Ölçüm protokolüne etkisi.** Protokol ikili aramayı şöyle
+meşrulaştırıyordu: "tek işçili CP-SAT determinist ve süre limiti tek
+yönlüdür — B çalışıyorsa B+ de çalışır; aynı B'de tekrar koşmaya gerek
+yoktur." Bu gerekçenin ikinci yarısı düşmüştür. FİZİBİLİTE için monotonluk
+gözlemle hâlâ uyumlu (60 ve 150 başarısız; 187, 225, 300 başarılı), KALİTE
+için değil. Tek koşuluk ikili arama, gürültüsü ölçülmemiş bir eşik verir.
+
+**Çekince (dürüst kayıt).** 11 Eylül koşuları, sayfayı ~30 saniyede bir
+yoklayan bir tarayıcı otomasyonuyla alındı; bu, protokolün "tek sekme, başka
+ağır uygulama kapalı" koşulunu ihlal eder ve aynı makineden CPU çalar.
+11 Eylül sonuçlarının 9 Ağustos'takinden kötü çıkması bununla tutarlıdır.
+Yani Bulgu 7 iki şeyi birden gösteriyor: (a) sonuç ortam koşuluna gerçekten
+duyarlı, (b) bu oturumun sayıları temiz koşulda alınmış sayılmaz —
+9 Ağustos'un B=300 satırı daha temiz ölçümdür.
+
+**Sonuç:** duvar saati eşiği kovalamak yanlış alettir. Doğru alet bu belgede
+zaten yazılı (bkz. "Ölçüm maliyeti üzerine not"): çözücüye çözüm geri
+çağırması takıp ilk çözümün bulunduğu anı ölçmek. Bulgu 7 onu "ucuz
+seçenek" olmaktan çıkarıp tek güvenilir yol hâline getiriyor.
+
+## Karar 30 adayı — güncellenmiş öneri (karar VERİLMEDİ)
+
+Önceki öneri (B\* × ~1,5 → 240 sn) Bulgu 7'den ÖNCE yazılmıştı. Bulgu 7
+sonrası öneri şudur; onaya sunulmadan uygulanmamalıdır:
+
+1. **Varsayılanı 60 → 240 sn yap, GEÇİCİ etiketiyle.** 60, bu okulda
+   yapısal olarak yetersiz (iki bağımsız koşuda UNKNOWN). 240, gözlenen
+   eşiğin (150-187) üstünde makul bir pay bırakır. 300 yerine 240, çünkü
+   Bulgu 6 gereği bütçe her başarılı koşuda TAMAMEN tüketilir; fazladan
+   60 saniye ölçülebilir bir kalite getirmiyor, yalnızca bekletiyor.
+2. **Sayıyı bir eşik gibi sunma.** Bulgu 7'den sonra "B\* şudur" demek
+   yanıltıcıdır; varsayılan, gürültüsü ölçülmemiş bir dağılımın üstünde
+   seçilmiş bir paydır. Ürün metni zaten doğru dili kullanıyor
+   ("büyük veya sıkışık okullarda artırın").
+3. **Asıl iş sabit değil, enstrümantasyon.** İlk çözüm anını ölçen geri
+   çağırma + ilerleme göstergesi + iyileşme durunca erken durdurma; bunlar
+   varsayılanı doğru seçmekten daha çok kazandırır ve Bulgu 6'nın "bütçe
+   tamamen tüketiliyor" sorununu kökünden çözer. Ayrı karar(lar).
+
+## Kabul testi kusur listesi (11 Eyl 2026, gerçek veriyle)
+
+Aynı oturumda ürün bir yönetici gibi uçtan uca kullanıldı. GEÇENLER:
+taslağın yedi hafta sonra IndexedDB'den geri yüklenmesi; A-katmanı kapısının
+canlı çalışması (haftalık saat 1→3 yapılınca iki sorunu ayrı ayrı bildirip
+Çöz'ü kilitledi); korumalı silme; Karar 29 geri düşüşünün HER İKİ kolu
+(çizelge bulunamadı / bulundu); Karar 27'nin iki eksenli çizelgesi
+(idareci O05 dahil 12 öğretmen satırı); 300 saniye boyunca donmayan arayüz.
+
+Bulunan kusurlar, öncelik sırasıyla:
+
+1. **Eski sonuç ekranda kalıyor.** Veri düzenlendikten sonra önceki koşunun
+   durum raporu ve çizelgesi duruyor; "artık geçerli değil" uyarısı yok.
+   Ürünün dürüstlük tezine doğrudan aykırı. Öneri: taslak değiştiğinde
+   sonucu temizle veya "veri değişti — tekrar çözün" rozeti göster.
+2. **İlerleme bilgisi yok.** Sayaç yalnız geçen süreyi gösteriyor; hangi
+   geçişte olunduğu, çizelge bulunup bulunmadığı görünmüyor. Bulgu 6
+   (bütçe tamamen tüketiliyor) bunu ağırlaştırıyor: kullanıcı 240-300 sn
+   boyunca hiçbir geri bildirim almadan bekliyor.
+3. **Türkçe sıralama yok.** Ekrandaki listelerde Ç ve İ, Z'den sonra
+   sıralanıyor ("… Türk Kültür Medeniyet Tarihi, Çağdaş Türk ve Dünya
+   Tarihi, İngilizce …"). Gerçek okulda Çiğdem/İsmail/Şule listenin dibine
+   düşer. DİKKAT: serileştirmedeki `.sort()` Python `sorted()` altınına
+   bağlıdır (model.ts serileştirme notu) ve DEĞİŞMEMELİDİR; yalnız görünüm
+   katmanı `localeCompare("tr")` kullanmalı.
+4. **Korumalı silme mesajı tekrar ediyor.** Ders adları atama başına
+   listeleniyor ve şube yok: "Adabı Muaşeret, Adabı Muaşeret, Düşünme
+   Eğitimi, Düşünme Eğitimi, …". "Adabı Muaşeret (9A, 9B)" daha okunur.
+5. **Karar 12'nin telafisi karnede yok (doğrulanmalı).** cevrim-tablosu.md
+   §5 karneye "kapanış bitişiğindeki bekleme dilimleri" bilgi satırını
+   taahhüt ediyor; karnede "kapanış" sözcüğü hiç geçmiyor.
+6. **Çizelge 40 sütun, yatay kaydırma gerekiyor (bilgi).** Duvara asılacak
+   tek program çıktısı (Karar 27'de "İleride") bu gözlemle daha acil.
+
+**Yanlış alarm (kayda geçsin).** Test sırasında O06'ya (16/16) İdari kapanış
+eklendi, A-katmanı susunca "kapı imkânsız okulu geçiriyor" sanıldı. Yanlıştı:
+`ogretmenKapasitesi` + `bosGunIcinRezerveEdilecekAcikDilim` okunduğunda,
+kapanan dilimler kapasiteden düşerken B3 boş gün rezervinin de aynı kadar
+küçüldüğü görüldü — kapanan gün zaten boş gün olarak ayrılacaktı. Kapasite
+16'da kalıyor ve doğru kalıyor.
