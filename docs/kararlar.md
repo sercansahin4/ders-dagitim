@@ -746,9 +746,31 @@ bilinçli kullanılmadı: engelleyicidir ve otomatik denetimde sorun çıkarır.
 **Doğrulama durumu:** tsc temiz; vitest 9 dosya / 101 test yeşil (taslak
 30, kalanIsler 4 yeni dahil); `deney/` hiç değiştirilmedi (git ile
 doğrulandı), dolayısıyla çözücü davranışı ve altın testler etkilenmez.
-**Tarayıcıda elle senaryo HENÜZ KOŞULMADI:** bu oturum kodu kullanıcının
-makinesinde yazdı ve test etti ama `git push` yapamadı (kabuğunda GitHub
-kimlik bilgisi yok), dolayısıyla Cloudflare yeni sürümü dağıtmadı. Elle
-senaryo (yeni okul → şube/ders/öğretmen → atama → kopyala → dağıt →
-çöz → refresh → geri yükle) dağıtımdan sonra koşulmalı ve sonucu buraya
-eklenmelidir.
+**Tarayıcıda elle senaryo KOŞULDU (11 Eyl 2026, canlı adres, dağıtım
+sonrası) ve GEÇTİ.** Sıfırdan kurulan okul: 2 şube (9-A, 9-B), 3 ders
+(Matematik SAYISAL, Türk Dili SOZEL, Rehberlik REHBERLIK_DIGER),
+2 öğretmen (branşlarıyla), her şubeye sınıf rehber öğretmeni, 9-A'ya
+3 atama (4+3+1 saat), sonra 9-A → 9-B kopyalama, sonra ders dağıtımı.
+
+Gözlenenler:
+- Boş okulda ekran "Kalan işler (3) — henüz girilmemiş" başlığıyla açıldı;
+  "Düzeltilmesi gerekenler" bölümü hiç görünmedi. Hedeflenen etki bu.
+- Veri girdikçe iki başlık doğru şekilde yer değiştirdi; kapı satırı
+  ("Çöz, A-katmanı N sorunu giderilene kadar kilitli kalır") sayıyı
+  A-katmanından okudu.
+- Kopyalama: "9-A → 9-B: 3 ders kopyalandı. Öğretmenler bilerek boş
+  bırakıldı; ders dağıtımını şimdi yapın." Atama sayısı 3 → 6, saat 8 → 16.
+- Dağıtım bitince paneller kayboldu, Çöz açıldı.
+- Çözüm: **OPTIMAL / Geçiş 2 OPTIMAL, kilit 0, 3,6 sn**, sekiz C kuralının
+  hepsi sıfır ihlal, çizelge ekranda.
+- Kusur 1: çözümden sonra bir kapanış eklendi; "Dikkat: ... artık güncel
+  değil ... tekrar çözün" uyarısı çıktı, çizelge ve karne ekranda KALDI.
+- Refresh → "Kaldığın taslağı geri yükle": okul eksiksiz döndü (IndexedDB
+  içeriği alan alan doğrulandı: branşlar, rehber öğretmenler, kopyalanmış
+  atamalar ve eklenen kapanış yerinde).
+
+İyileştirme adayı (gözlemle doğrulandı): "şubenin sınıf rehber öğretmeni
+tanımlı değil" mesajı ÇELİŞKİLİ başlığı altında çıkıyor; gerçekte bu bir
+EKSİK'tir. Karar metninde öngörülen yaklaşıklığın sahadaki karşılığıdır.
+Düzeltmek `kontrolSinifRehberOgretmeni`'yi çıktı sırasını bozmadan
+bölmeyi gerektirir; ayrı iş.
