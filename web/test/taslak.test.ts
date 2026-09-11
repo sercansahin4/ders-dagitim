@@ -7,10 +7,15 @@ import { describe, expect, it } from "vitest";
 import { varsayilanIzgara, varsayilanKuralAyarlari } from "../src/model.js";
 import type { Okul } from "../src/model.js";
 import {
+  bosOkul,
+  dersSilinebilir,
+  izgaraDisiKalanlar,
   ogretmenKullanimlari,
   ogretmenSilinebilir,
   ogretmenYenidenAdlandir,
   sonucBayatMi,
+  subeDersTablosuKopyala,
+  subeSilinebilir,
   taslakReducer,
 } from "../src/taslak.js";
 
@@ -197,5 +202,220 @@ describe("sonucBayatMi — ekrandaki sonuç güncel mi (Kusur 1)", () => {
     const sonra = taslakReducer(okul, { tip: "ogretmenSil", ogretmen: "Ayşe" });
     expect(sonra).toBe(okul);
     expect(sonucBayatMi(okul, sonra)).toBe(false);
+  });
+});
+
+describe("ikinci artış — sıfırdan okul kurma", () => {
+  it("bosOkul boş dizilerle ve varsayılan ayarlarla başlar", () => {
+    const okul = bosOkul();
+    expect(okul.subeler).toHaveLength(0);
+    expect(okul.dersler).toHaveLength(0);
+    expect(okul.ogretmenler).toHaveLength(0);
+    expect(okul.ders_atamalari).toHaveLength(0);
+    expect(okul.kural_ayarlari.b3_muaf_ogretmenler.size).toBe(0);
+  });
+
+  it("aynı adla ikinci şube/ders/öğretmen eklenmez (değişmez döner)", () => {
+    const okul = ornekOkul();
+    expect(taslakReducer(okul, { tip: "subeEkle", ad: "9-A" })).toBe(okul);
+    expect(
+      taslakReducer(okul, { tip: "dersEkle", ad: "Fizik", kategori: "SAYISAL" }),
+    ).toBe(okul);
+    expect(taslakReducer(okul, { tip: "ogretmenEkle", ad: "Ayşe" })).toBe(okul);
+    expect(taslakReducer(okul, { tip: "subeEkle", ad: "   " })).toBe(okul);
+  });
+
+  it("yeni şube eklenir ve rehber öğretmeni atanabilir", () => {
+    let okul = taslakReducer(ornekOkul(), { tip: "subeEkle", ad: "9-B" });
+    expect(okul.subeler.map((s) => s.ad)).toEqual(["9-A", "9-B"]);
+    okul = taslakReducer(okul, {
+      tip: "subeRehberOgretmeni",
+      sube: "9-B",
+      ogretmen: "Ayşe",
+    });
+    expect(okul.subeler[1]?.sinif_rehber_ogretmeni).toBe("Ayşe");
+  });
+
+  it("kullanımdaki şube silinmez, nedeni söylenir", () => {
+    const okul = ornekOkul();
+    const karar = subeSilinebilir(okul, "9-A");
+    expect(karar.silinebilir).toBe(false);
+    expect(karar.neden).toContain("Fizik");
+    expect(taslakReducer(okul, { tip: "subeSil", ad: "9-A" })).toBe(okul);
+  });
+
+  it("şube yeniden adlandırma İKİ referansı birden günceller", () => {
+    const okul = taslakReducer(ornekOkul(), {
+      tip: "subeYenidenAdlandir",
+      eski: "9-A",
+      yeni: "9-C",
+    });
+    expect(okul.subeler[0]?.ad).toBe("9-C");
+    expect(okul.ders_atamalari[0]?.subeler).toEqual(["9-C"]);
+  });
+
+  it("ders yeniden adlandırma ÜÇ referansı birden günceller", () => {
+    const okul = taslakReducer(ornekOkul(), {
+      tip: "dersYenidenAdlandir",
+      eski: "Fizik",
+      yeni: "Fizik II",
+    });
+    expect(okul.dersler.map((d) => d.ad)).toContain("Fizik II");
+    expect(okul.ders_atamalari[0]?.ders).toBe("Fizik II");
+    // Üçüncüsü kolay unutulan: branş listesi de ders ADINA bağlıdır.
+    expect(
+      okul.ogretmenler.find((o) => o.ad === "Ayşe")?.verebilecegi_dersler,
+    ).toEqual(["Fizik II"]);
+  });
+
+  it("ders silme hem atamayı hem branş listesini gözetir", () => {
+    const okul = ornekOkul();
+    expect(dersSilinebilir(okul, "Fizik").neden).toContain("9-A");
+    // Atamayı kaldırınca bu kez branş listesi engeller.
+    const atamasiz = taslakReducer(okul, { tip: "atamaSil", atamaIndex: 0 });
+    const karar = dersSilinebilir(atamasiz, "Fizik");
+    expect(karar.silinebilir).toBe(false);
+    expect(karar.neden).toContain("Ayşe");
+    // Branştan da çıkınca silinebilir.
+    const branssiz = taslakReducer(atamasiz, {
+      tip: "ogretmenBrans",
+      ogretmen: "Ayşe",
+      dersler: [],
+    });
+    expect(dersSilinebilir(branssiz, "Fizik").silinebilir).toBe(true);
+    expect(
+      taslakReducer(branssiz, { tip: "dersSil", ad: "Fizik" }).dersler.length,
+    ).toBe(1);
+  });
+
+  it("B3 muafiyeti açılıp kapanır", () => {
+    let okul = taslakReducer(ornekOkul(), {
+      tip: "ogretmenB3Muafiyeti",
+      ogretmen: "Mehmet",
+      muaf: true,
+    });
+    expect(okul.kural_ayarlari.b3_muaf_ogretmenler.has("Mehmet")).toBe(true);
+    okul = taslakReducer(okul, {
+      tip: "ogretmenB3Muafiyeti",
+      ogretmen: "Ayşe",
+      muaf: false,
+    });
+    expect(okul.kural_ayarlari.b3_muaf_ogretmenler.has("Ayşe")).toBe(false);
+  });
+
+  it("atama eklenir ve silinir", () => {
+    const okul = taslakReducer(ornekOkul(), {
+      tip: "atamaEkle",
+      atama: {
+        ders: "Rehberlik",
+        haftalik_saat: 1,
+        blok_deseni: [1],
+        subeler: ["9-A"],
+        ogretmenler: [],
+        sabit_dilimler: null,
+        birlestirilebilir: false,
+      },
+    });
+    expect(okul.ders_atamalari).toHaveLength(2);
+    expect(taslakReducer(okul, { tip: "atamaSil", atamaIndex: 1 }).ders_atamalari).toHaveLength(1);
+  });
+
+  it("kopyalama ders tablosunu taşır ve öğretmenleri boşaltır", () => {
+    let okul = taslakReducer(ornekOkul(), { tip: "subeEkle", ad: "9-B" });
+    okul = taslakReducer(okul, {
+      tip: "atamaEkle",
+      atama: {
+        ders: "Rehberlik",
+        haftalik_saat: 1,
+        blok_deseni: [1],
+        subeler: ["9-A"],
+        ogretmenler: ["Mehmet"],
+        sabit_dilimler: null,
+        birlestirilebilir: false,
+      },
+    });
+
+    const sonuc = subeDersTablosuKopyala(okul, "9-A", "9-B");
+    expect(sonuc.kopyalandi).toBe(2);
+    expect(sonuc.atlandiVar).toBe(0);
+    expect(sonuc.atlandiCokSubeli).toBe(0);
+
+    const kopyalar = sonuc.okul.ders_atamalari.filter((a) => a.subeler.includes("9-B"));
+    expect(kopyalar).toHaveLength(2);
+    // Ders tablosu gelir, ders dağıtımı gelmez: öğretmenler BOŞ.
+    expect(kopyalar.every((a) => a.ogretmenler.length === 0)).toBe(true);
+    const fizik = kopyalar.find((a) => a.ders === "Fizik");
+    expect(fizik?.haftalik_saat).toBe(4);
+    expect(fizik?.blok_deseni).toEqual([2, 2]);
+    // Kaynak şube bozulmadı.
+    expect(
+      sonuc.okul.ders_atamalari.filter((a) => a.subeler.includes("9-A")),
+    ).toHaveLength(2);
+  });
+
+  it("kopyalama hedefte zaten olanı ve çok şubeli atamayı atlar", () => {
+    let okul = taslakReducer(ornekOkul(), { tip: "subeEkle", ad: "9-B" });
+    okul = taslakReducer(okul, { tip: "dersEkle", ad: "Müzik", kategori: "SANAT_SPOR" });
+    // Hedefte zaten var olacak ders (9-A'da da bulunacak)
+    okul = taslakReducer(okul, {
+      tip: "atamaEkle",
+      atama: {
+        ders: "Rehberlik",
+        haftalik_saat: 1,
+        blok_deseni: [1],
+        subeler: ["9-B"],
+        ogretmenler: ["Mehmet"],
+        sabit_dilimler: null,
+        birlestirilebilir: false,
+      },
+    });
+    okul = taslakReducer(okul, {
+      tip: "atamaEkle",
+      atama: {
+        ders: "Rehberlik",
+        haftalik_saat: 1,
+        blok_deseni: [1],
+        subeler: ["9-A"],
+        ogretmenler: ["Mehmet"],
+        sabit_dilimler: null,
+        birlestirilebilir: false,
+      },
+    });
+    // Çok şubeli (birleşik) atama: kopyalanmaz
+    okul = taslakReducer(okul, {
+      tip: "atamaEkle",
+      atama: {
+        ders: "Müzik",
+        haftalik_saat: 2,
+        blok_deseni: [2],
+        subeler: ["9-A", "9-B"],
+        ogretmenler: ["Ayşe"],
+        sabit_dilimler: null,
+        birlestirilebilir: true,
+      },
+    });
+
+    const sonuc = subeDersTablosuKopyala(okul, "9-A", "9-B");
+    expect(sonuc.kopyalandi).toBe(1); // yalnız Fizik
+    expect(sonuc.atlandiVar).toBe(1); // Rehberlik hedefte zaten var
+    expect(sonuc.atlandiCokSubeli).toBe(1); // birleşik Müzik ataması
+  });
+
+  it("kopyalama kendine veya olmayan şubeye yapılmaz", () => {
+    const okul = ornekOkul();
+    expect(subeDersTablosuKopyala(okul, "9-A", "9-A").okul).toBe(okul);
+    expect(subeDersTablosuKopyala(okul, "9-A", "yok").kopyalandi).toBe(0);
+  });
+
+  it("ızgara küçültmede aralık dışı kalacak kayıtlar sayılır", () => {
+    let okul = ornekOkul();
+    okul = taslakReducer(okul, {
+      tip: "kapanisEkle",
+      ogretmen: "Mehmet",
+      kapanis: { gun: 5, dilimler: [7, 8], neden: "IDARI" },
+    });
+    const dar = { ...okul.izgara, gun_sayisi: 4, dilim_sayisi: 6 };
+    expect(izgaraDisiKalanlar(okul, dar).kapanis).toBe(1);
+    expect(izgaraDisiKalanlar(okul, okul.izgara).kapanis).toBe(0);
   });
 });
