@@ -401,6 +401,24 @@ describe("ikinci artış — sıfırdan okul kurma", () => {
     expect(sonuc.atlandiCokSubeli).toBe(1); // birleşik Müzik ataması
   });
 
+  it("atamaya öğretmen atanır ve çıkarılır (ders dağıtımı adımı)", () => {
+    const okul = ornekOkul();
+    const bosaltilmis = taslakReducer(okul, {
+      tip: "atamaOgretmenler",
+      atamaIndex: 0,
+      ogretmenler: [],
+    });
+    expect(bosaltilmis.ders_atamalari[0]?.ogretmenler).toEqual([]);
+    const atanmis = taslakReducer(bosaltilmis, {
+      tip: "atamaOgretmenler",
+      atamaIndex: 0,
+      ogretmenler: ["Ayşe", "Mehmet"],
+    });
+    expect(atanmis.ders_atamalari[0]?.ogretmenler).toEqual(["Ayşe", "Mehmet"]);
+    // Diğer atamalar ve öğretmen kayıtları etkilenmez.
+    expect(atanmis.ogretmenler).toEqual(okul.ogretmenler);
+  });
+
   it("kopyalama kendine veya olmayan şubeye yapılmaz", () => {
     const okul = ornekOkul();
     expect(subeDersTablosuKopyala(okul, "9-A", "9-A").okul).toBe(okul);

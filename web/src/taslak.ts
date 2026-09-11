@@ -60,6 +60,7 @@ export type TaslakEylem =
   | { tip: "ogretmenB3Muafiyeti"; ogretmen: string; muaf: boolean }
   | { tip: "atamaEkle"; atama: DersAtamasi }
   | { tip: "atamaSil"; atamaIndex: number }
+  | { tip: "atamaOgretmenler"; atamaIndex: number; ogretmenler: string[] }
   | { tip: "subeDersTablosuKopyala"; kaynak: string; hedef: string };
 
 /** Bir isim listesinde eski adı (varsa) yenisiyle değiştirir. */
@@ -512,6 +513,14 @@ export function taslakReducer(okul: Okul, eylem: TaslakEylem): Okul {
     }
     case "atamaEkle":
       return { ...okul, ders_atamalari: [...okul.ders_atamalari, eylem.atama] };
+    case "atamaOgretmenler":
+      // Ders DAĞITIMI adımı: tabloya kimin gireceği burada belirlenir.
+      // Branş uyumunu A-katmanı denetler (kontrolBransDersUyumu); burada
+      // kural tekrarlanmaz (Karar 22).
+      return atamayiGuncelle(okul, eylem.atamaIndex, (a) => ({
+        ...a,
+        ogretmenler: [...eylem.ogretmenler],
+      }));
     case "atamaSil":
       return {
         ...okul,

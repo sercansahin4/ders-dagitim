@@ -40,7 +40,9 @@ export function DersAtamasiDuzenle({
   const [yeniBlok, setYeniBlok] = useState<string>("");
 
   if (okul.ders_atamalari.length === 0) {
-    return <div style={kutu}>Ders ataması yok. (Sıfırdan ekleme sonraki artışta.)</div>;
+    return <div style={kutu}>
+        Henüz ders ataması yok — yukarıdaki “Okul kurulumu” bölümünden ekleyin.
+      </div>;
   }
 
   const index = seciliIndex < okul.ders_atamalari.length ? seciliIndex : 0;
@@ -69,6 +71,44 @@ export function DersAtamasiDuzenle({
             ))}
           </select>
         </label>
+      </div>
+
+      <div style={{ marginTop: 8 }}>
+        <div>Bu atamaya giren öğretmen(ler):</div>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 4 }}>
+          {okul.ogretmenler.length === 0 && (
+            <span style={{ color: "#777" }}>— önce öğretmen ekleyin —</span>
+          )}
+          {okul.ogretmenler.map((o) => (
+            <label key={o.ad}>
+              <input
+                type="checkbox"
+                checked={atama.ogretmenler.includes(o.ad)}
+                onChange={(e) =>
+                  duzenle({
+                    tip: "atamaOgretmenler",
+                    atamaIndex: index,
+                    ogretmenler: e.target.checked
+                      ? [...atama.ogretmenler, o.ad]
+                      : atama.ogretmenler.filter((x) => x !== o.ad),
+                  })
+                }
+              />{" "}
+              {o.ad}
+              {!o.verebilecegi_dersler.includes(atama.ders) && (
+                <span style={{ color: "#a60" }} title="Bu öğretmenin branş listesinde bu ders yok; A-katmanı bunu bildirir.">
+                  {" "}⚠
+                </span>
+              )}
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ marginTop: 8 }}>
+        <button onClick={() => duzenle({ tip: "atamaSil", atamaIndex: index })}>
+          Bu atamayı sil
+        </button>
       </div>
 
       <div style={{ marginTop: 8 }}>

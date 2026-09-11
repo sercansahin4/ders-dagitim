@@ -43,7 +43,9 @@ export function OgretmenDuzenle({
   const [silNeden, setSilNeden] = useState<string | null>(null);
 
   if (okul.ogretmenler.length === 0) {
-    return <div style={kutu}>Öğretmen yok. (Sıfırdan ekleme sonraki artışta.)</div>;
+    return <div style={kutu}>
+        Henüz öğretmen yok — yukarıdaki “Okul kurulumu” bölümünden ekleyin.
+      </div>;
   }
 
   // Seçili ad geçerli değilse (ilk açılış, silme, yeniden adlandırma) ilkine düş.
@@ -172,6 +174,50 @@ export function OgretmenDuzenle({
           </select>
           <button onClick={kapanisEkle}>Kapanış ekle</button>
         </div>
+      </div>
+
+      <div style={{ marginTop: 8 }}>
+        <div>Verebileceği dersler (branş):</div>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 4 }}>
+          {okul.dersler.length === 0 && (
+            <span style={{ color: "#777" }}>— önce ders ekleyin —</span>
+          )}
+          {okul.dersler.map((d) => (
+            <label key={d.ad}>
+              <input
+                type="checkbox"
+                checked={secili.verebilecegi_dersler.includes(d.ad)}
+                onChange={(e) =>
+                  duzenle({
+                    tip: "ogretmenBrans",
+                    ogretmen: seciliAd,
+                    dersler: e.target.checked
+                      ? [...secili.verebilecegi_dersler, d.ad]
+                      : secili.verebilecegi_dersler.filter((x) => x !== d.ad),
+                  })
+                }
+              />{" "}
+              {d.ad}
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ marginTop: 8 }}>
+        <label title="Karar 17: boş gün garantisi (B3) bu öğretmen için kurulmaz. Ağır dış okul yüklü profillerde yapısal olarak gerekebilir.">
+          <input
+            type="checkbox"
+            checked={okul.kural_ayarlari.b3_muaf_ogretmenler.has(seciliAd)}
+            onChange={(e) =>
+              duzenle({
+                tip: "ogretmenB3Muafiyeti",
+                ogretmen: seciliAd,
+                muaf: e.target.checked,
+              })
+            }
+          />{" "}
+          Boş gün garantisinden muaf (B3)
+        </label>
       </div>
 
       <div style={{ marginTop: 8, display: "flex", gap: 6, alignItems: "center" }}>

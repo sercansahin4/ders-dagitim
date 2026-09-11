@@ -13,13 +13,20 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import ornekOkulMetni from "../../deney/veri/ornek_okul.json?raw";
 import type { CozIstegi, CozumMesaji, HataMesaji } from "./cozucu.worker.js";
-import { aKatmaniDogrulama, okulKaydetMetne, okulYukleMetinden } from "./model.js";
+import {
+  aKatmaniDogrulama,
+  okulKaydetMetne,
+  okulYukleMetinden,
+  varsayilanIzgara,
+} from "./model.js";
+import { kalanIsler } from "./kalanIsler.js";
 import type { Okul, Yerlesim } from "./model.js";
-import { sonucBayatMi, taslakReducer, type TaslakEylem } from "./taslak.js";
+import { bosOkul, sonucBayatMi, taslakReducer, type TaslakEylem } from "./taslak.js";
 import { taslakKaydet, taslakYukle } from "./taslakDepo.js";
 import { CizelgeTablosu } from "./CizelgeTablosu.js";
 import { OgretmenDuzenle } from "./OgretmenDuzenle.js";
 import { DersAtamasiDuzenle } from "./DersAtamasiDuzenle.js";
+import { OkulKurulum } from "./OkulKurulum.js";
 
 type WorkerMesaji = CozumMesaji | HataMesaji;
 
@@ -57,6 +64,9 @@ export function Uygulama() {
   // yeniden kurulduğu için referans kıyasına uygun değildir; bu yüzden
   // çözüm anındaki taslak ayrıca tutulur.
   const [cozulenTaslak, setCozulenTaslak] = useState<Okul | null>(null);
+  // Yeni okul kayıtlı taslağın üstüne yazar; onay satır içinde sorulur
+  // (tarayıcı modal'ı bilinçli kullanılmıyor: engelleyici ve test edilemez).
+  const [yeniOkulOnayi, setYeniOkulOnayi] = useState(false);
   const baslangicRef = useRef(0);
 
   // Açılışta cihazda kayıtlı taslak varsa geri yükleme için hazır tut.
@@ -84,6 +94,7 @@ export function Uygulama() {
     () => (taslak === null ? [] : aKatmaniDogrulama(taslak)),
     [taslak],
   );
+  const kalan = useMemo(() => (taslak === null ? null : kalanIsler(taslak)), [taslak]);
 
   /** Metni ayrıştırır, taslağı kurar; hata varsa gösterir. */
   function veriYukle(ad: string, okulMetni: string) {
@@ -104,6 +115,19 @@ export function Uygulama() {
           `okul JSON'u olduğundan emin olun.`,
       );
     }
+  }
+
+  /** Sıfırdan boş okul: sonuçlar temizlenir, taslak baştan kurulur. */
+  function yeniOkulBaslat() {
+    setCikti(null);
+    setCizelge(null);
+    setCozulenTaslak(null);
+    setYuklemeHatasi(null);
+    setKaynakAd("yeni okul");
+    setTaslak((t) =>
+      taslakReducer(t ?? bosOkul(), { tip: "yeniOkul", izgara: varsayilanIzgara() }),
+    );
+    setYeniOkulOnayi(false);
   }
 
   function dosyaSecildi(olay: React.ChangeEvent<HTMLInputElement>) {
@@ -188,7 +212,20 @@ export function Uygulama() {
         </label>{" "}
         <button onClick={() => veriYukle("örnek okul", ornekOkulMetni)} disabled={calisiyor}>
           Örnek okulu kullan
-        </button>
+        </button>{" "}
+        {!yeniOkulOnayi && (
+          <button onClick={() => setYeniOkulOnayi(true)} disabled={calisiyor}>
+            Yeni okul oluştur
+          </button>
+        )}
+        {yeniOkulOnayi && (
+          <span>
+            Bu, cihazda kayıtlı taslağın üstüne yazar. Saklamak istiyorsan önce
+            “JSON dışa aktar” de.{" "}
+            <button onClick={yeniOkulBaslat}>Evet, boş okul kur</button>{" "}
+            <button onClick={() => setYeniOkulOnayi(false)}>Vazgeç</button>
+          </span>
+        )}
       </p>
 
       {kayitliTaslak !== null && taslak === null && (
@@ -213,13 +250,32 @@ export function Uygulama() {
           <p>
             <strong>{kaynakAd}</strong> yüklendi: {veriOzeti(taslak)}
           </p>
-          {aKatmaniHatalari.length > 0 && (
+          {kalan !== null && (kalan.eksik.length > 0 || kalan.celiskili.length > 0) && (
             <div>
-              <p>
-                Veri tutarlılık kontrolü (A-katmanı) {aKatmaniHatalari.length} sorun
-                buldu; çözüme geçmeden önce veriyi düzeltin:
-              </p>
-              <pre>{aKatmaniHatalari.join("\n")}</pre>
+              {kalan.eksik.length > 0 && (
+                <div>
+                  <p>
+                    <strong>Kalan işler</strong> ({kalan.eksik.length}) — henüz
+                    girilmemiş:
+                  </p>
+                  <pre>{kalan.eksik.join("\n")}</pre>
+                </div>
+              )}
+              {kalan.celiskili.length > 0 && (
+                <div>
+                  <p>
+                    <strong>Düzeltilmesi gerekenler</strong> ({kalan.celiskili.length})
+                    — girilen veriler birbiriyle tutmuyor:
+                  </p>
+                  <pre>{kalan.celiskili.join("\n")}</pre>
+                </div>
+              )}
+              {kalan.kapiSorunSayisi > 0 && (
+                <p style={{ color: "#777" }}>
+                  “Çöz”, A-katmanı {kalan.kapiSorunSayisi} sorunu giderilene kadar
+                  kilitli kalır.
+                </p>
+              )}
             </div>
           )}
           <p>
@@ -244,6 +300,7 @@ export function Uygulama() {
             </label>
           </p>
 
+          <OkulKurulum okul={taslak} duzenle={duzenle} />
           <OgretmenDuzenle okul={taslak} duzenle={duzenle} />
           <DersAtamasiDuzenle okul={taslak} duzenle={duzenle} />
         </section>
