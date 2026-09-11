@@ -20,7 +20,7 @@ A-katmanı kapısı → çözüm → karne + iki eksenli (şube/öğretmen) çiz
 ataması, süre bütçesi) ve tekrar çözülür; taslak cihazda saklanır
 (Karar 28). Çözücü süreye sığmazsa da Türkçe konuşur: sert kurallara
 uyan ham bir çizelge arar ve ne yapılacağını söyler (Karar 29).
-Henüz kullanıcıya hazır, cilalı sürüm yok (MVP sürüyor).
+Artık SIFIRDAN okul kurulabiliyor: ızgara, şube, ders, öğretmen ve ders atamaları ekranda girilir; bir şubenin ders tablosu başka şubeye kopyalanır (öğretmenler bilerek boş kalır — ders dağıtımı ayrı adımdır) ve A-katmanı "kalan işler" diliyle neyin eksik, neyin çelişkili olduğunu söyler (Karar 31). Henüz kullanıcıya hazır, cilalı sürüm yok (MVP sürüyor).
 
 **Canlı demo (kanıt ekranı):** https://ders-dagitim.sercansahin4.workers.dev
 

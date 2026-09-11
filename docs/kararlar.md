@@ -657,3 +657,98 @@ Dürüst kayıtlar:
 
 Durum: tsc temiz; web vitest 76/76 (durumRaporu 8 + taslak süre bütçesi 2
 yeni); Python pytest 20/20 (coz.py imza değişikliği regresyon yaratmadı).
+
+## 30. (ayrılmış — varsayılan süre bütçesi; KARAR VERİLMEDİ)
+
+Bu numara, varsayılan `sure_butcesi_saniye` kararına ayrılmıştır. Ölçüm
+tamamlandı (bkz. docs/gercek-okul-bulgulari.md, koşu kaydı ve Bulgu 7) ve
+güncellenmiş öneri aynı belgedeki "Karar 30 adayı" bölümündedir; kullanıcı
+onayı beklediği için karar yazılmamıştır. Numara, kayıt sırası bozulmasın
+diye boş bırakıldı.
+
+## 31. Veri girişi ikinci artış: sıfırdan okul kurma + A-katmanının "kalan işler" dili (11 Eyl 2026)
+
+Karar 28 yalnız "yüklenmiş okulu düzenle" artışını kapsıyordu; sıfırdan
+okul oluşturma bilinçli olarak dışarıda bırakılmıştı. 11 Eylül kabul
+testinde bunun pilot okulun önündeki ASIL engel olduğu görüldü: ürünü
+yeni bir okulla denemenin tek yolu elle JSON yazmaktı ve bir müdür
+yardımcısı JSON yazamaz. Bu artış o kapıyı açar.
+
+**a) Kapsam.** İçeride: yeni boş okul + ızgara ayarı; şube ekle/sil/
+adlandır + sınıf rehber öğretmeni; ders ekle/sil/adlandır + kategori;
+öğretmen ekle + branş (`verebilecegi_dersler`) + B3 muafiyeti; ders
+ataması ekle/sil + atamaya öğretmen atama; bir şubenin ders tablosunu
+başka şubeye kopyalama. Dışarıda (ayrı karar): birden çok kayıtlı taslak,
+Excel/CSV içe aktarma, `sabit_dilimler` (çakma) arayüzü,
+`birlestirilebilir` (birleşik ders) arayüzü, kural ayarlarının tam paneli.
+
+**b) Çoğaltma şubeden şubeye yapılır; seviye şablonu reddedildi.**
+"9A'nın ders tablosunu 9B'ye kopyala": dersler, saatler ve blok desenleri
+gelir, **öğretmenler boş kalır**. Gerekçe iki katmanlı:
+(1) Alan gerçeği — okul iki ayrı iş yapar: ders TABLOSU (hangi ders kaç
+saat) MEB çizelgesinden gelir, ders DAĞITIMI (kim giriyor) okulun
+kararıdır. Kullanıcının okulunda 9A ile 9B'nin 17 dersi birebir aynı;
+farklı olan yalnız öğretmenler. 12A ile 12B'de gövde ortak, seçmeli
+kuyruk farklı — kopyalayıp fazlasını silmek bunu da karşılar.
+(2) Mühendislik — seviye şablonu için veri modelinde "seviye" alanı
+gerekirdi; Veri Modeli v0 donmuştur (Karar 16) ve şube adından seviye
+tahmin etmek kırılgandır. Kopyalama aynı kazancı modele dokunmadan verir.
+Atlananlar: hedefte aynı ders varsa üzerine yazılmaz; çok şubeli
+(birleşik) atamalar kopyalanmaz. Sayaçlar kullanıcıya Türkçe özetlenir.
+
+**c) A-katmanı "kalan işler" diliyle sunulur.** Boş okulda tek kırmızı
+liste onlarca satırla açılıyor ve ekran "bozuk" gibi okunuyordu. Aynı
+çıktı artık iki başlıkta: EKSİK (henüz girilmemiş) ve ÇELİŞKİLİ
+(girilmiş ama tutmuyor). **Yeni kural yazılmadı:** model.ts sekiz kontrolü
+zaten tek tek dışa açıyor; `kalanIsler.ts` onları ayrı ayrı çağırıp
+gruplandırmaktan başka bir şey yapmaz. `aKatmaniDogrulama`'nın imzası ve
+çıktı SIRASI değişmedi (Python ikizi ve altın testler korundu). Çöz kapısı
+hâlâ yalnız `aKatmaniDogrulama(okul).length === 0` şartına bakar; boş
+okulda gösterilen "başlangıç adımları" yol göstericidir, hiçbir şeyi
+engellemez. Bu iddia koda bağlandı: bir test, gruplandırmanın
+A-katmanından madde düşürmediğini ve madde uydurmadığını doğrular.
+
+`kontrolSinifRehberOgretmeni` tek başına hem eksik ("rehber öğretmen
+tanımlı değil") hem çelişki ("rehberlik dersine başka öğretmen girmiş")
+üretiyor. İkiye bölünmedi: şube başına dallandığı için bölmek
+`aKatmaniDogrulama` çıktısının SIRASINI değiştirirdi. Tamamı ÇELİŞKİLİ
+sayıldı; bilinçli ve kayıtlı bir yaklaşıklıktır.
+
+**d) Referans bütünlüğü genişletildi — ve bir düzeltme.** Karar 28
+öğretmen adının DÖRT yerde geçtiğini kaydetmişti. Bu artışta şube adının
+İKİ, ders adının ise **ÜÇ** yerde geçtiği görüldü: `dersler[].ad`,
+`ders_atamalari[].ders` ve `ogretmenler[].verebilecegi_dersler[]`.
+Üçüncüsü kolayca gözden kaçar ve A-katmanının branş uyumu kontrolünün
+baktığı yerdir; unutulsaydı yeniden adlandırma öğretmeni sessizce "bu
+dersi veremez" hâline getirirdi. Testi vardır. Silme, şube ve ders için de
+korumalıdır (öğretmendeki desen).
+
+**e) Kusur 1 kapatıldı (aynı oturum).** Veri düzenlendikten sonra önceki
+koşunun sonucu ekranda kalıyor, "artık geçerli değil" uyarısı yoktu.
+Sonuç SİLİNMEZ — kullanıcının elindeki tek kıyas malzemesidir — bayat
+işaretlenir. Bayatlık testi referans eşitliğidir; reducer değişmez olduğu
+için reddedilen bir düzenleme (korumalı silme) yanlışlıkla "veri değişti"
+sayılmaz.
+
+**f) Yeni okul onayı satır içinde sorulur.** Tarayıcı modal'ı (`confirm`)
+bilinçli kullanılmadı: engelleyicidir ve otomatik denetimde sorun çıkarır.
+
+**Bilinçli feragatler:**
+- Tek kayıtlı taslak sürüyor; yeni okul kayıtlı taslağın üstüne yazar.
+  Onay ve "önce dışa aktar" uyarısıyla hafifletildi, çözülmedi.
+- Kopyalama birleşik (çok şubeli) atamaları atlıyor.
+- Izgara küçültmede aralık dışı kalan kapanış/sabit dilim TEMİZLENMEZ,
+  yalnız sayılıp uyarılır — otomatik temizlik sessiz veri kaybı olurdu.
+- Boş okulda A-katmanı hiçbir şey bildirmediği için "Çöz" açıktır ve boş
+  bir çizelge üretir. Zararsız ama tuhaf; kapıya boşluk şartı eklemek YENİ
+  KURAL olurdu, o yüzden yapılmadı. Ayrı karar adayı.
+
+**Doğrulama durumu:** tsc temiz; vitest 9 dosya / 101 test yeşil (taslak
+30, kalanIsler 4 yeni dahil); `deney/` hiç değiştirilmedi (git ile
+doğrulandı), dolayısıyla çözücü davranışı ve altın testler etkilenmez.
+**Tarayıcıda elle senaryo HENÜZ KOŞULMADI:** bu oturum kodu kullanıcının
+makinesinde yazdı ve test etti ama `git push` yapamadı (kabuğunda GitHub
+kimlik bilgisi yok), dolayısıyla Cloudflare yeni sürümü dağıtmadı. Elle
+senaryo (yeni okul → şube/ders/öğretmen → atama → kopyala → dağıt →
+çöz → refresh → geri yükle) dağıtımdan sonra koşulmalı ve sonucu buraya
+eklenmelidir.
