@@ -714,11 +714,11 @@ sonra geçen her saniye ölçülebilir bir kazanç vermedi; sabiti büyütmek o
 boşluğu yamar, kapatmaz. Ayrı karar(lar).
 
 **Doğrulama.** tsc temiz; vitest 9 dosya / 98 test yeşil (serileştirme
-altını yeniden üretilmiş Python çıktısına karşı geçti). `pytest` bu
-oturumda KOŞULAMADI: kullanıcının makinesindeki kabukta ortools kurulu
-değil. Python tarafındaki değişiklik tek bir varsayılan sabittir ve altın
-üreticisi Python'un kendisiyle çalıştırılmıştır; yine de bir sonraki
-Claude Code oturumu `pytest` ile teyit etmelidir.
+altını yeniden üretilmiş Python çıktısına karşı geçti); **pytest 20/20
+yeşil**. Python tarafı, oturumun izole Linux kabuğuna ortools kurularak
+koşuldu; kurulum kullanıcının makinesine değil o kabuğa yapıldı ve depoya
+hiçbir şey eklemedi. Çift gerçekleme disiplini (Karar 22) bu değişiklik
+için eksiksiz doğrulanmıştır.
 
 ## 31. Veri girişi ikinci artış: sıfırdan okul kurma + A-katmanının "kalan işler" dili (11 Eyl 2026)
 
